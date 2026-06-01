@@ -1,0 +1,29 @@
+{
+  "name": "codemetrics-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "seed": "node src/database/seed.js",
+    "test": "node --test --test-concurrency=1 test/unit/*.test.js test/integration/*.test.js",
+    "test:unit": "node --test --test-concurrency=1 test/unit/*.test.js",
+    "test:integration": "node --test --test-concurrency=1 test/integration/*.test.js",
+    "test:employees": "node --test --test-concurrency=1 test/unit/employees.model.test.js test/integration/employees.integration.test.js",
+    "test:performance": "node --test --test-concurrency=1 test/unit/performance.scoring.test.js test/integration/performance.integration.test.js",
+    "test:wallet": "node --test --test-concurrency=1 test/unit/wallet.model.test.js test/integration/wallet.integration.test.js",
+    "test:rewards": "node --test --test-concurrency=1 test/unit/rewards.model.test.js test/integration/rewards.integration.test.js",
+    "test:redemptions": "node --test --test-concurrency=1 test/unit/redemptions.model.test.js test/integration/redemptions.integration.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mongoose": "^9.0.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "nodemon": "^3.1.11"
+  }
+}

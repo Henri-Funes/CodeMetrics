@@ -1,0 +1,125 @@
+.app-shell {
+  min-height: 100vh;
+  background-color: #0f1115;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(0, 229, 255, 0.12), transparent 35%),
+    radial-gradient(circle at 80% 0%, rgba(120, 86, 255, 0.14), transparent 40%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
+    linear-gradient(225deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
+    linear-gradient(315deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%);
+  background-size: 100% 100%, 100% 100%, 56px 56px, 56px 56px, 56px 56px, 56px 56px;
+  background-position: 0 0, 0 0, 0 0, 28px 0, 28px -28px, 0 28px;
+}
+
+.app-header {
+  align-items: center;
+  backdrop-filter: blur(10px);
+  background: rgba(18, 20, 24, 0.88);
+  border-bottom: 1px solid rgba(0, 229, 255, 0.28);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+  display: flex;
+  height: 74px;
+  justify-content: space-between;
+  padding: 0 22px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.app-header__left {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+  min-width: 0;
+}
+
+.app-brand {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  min-width: 220px;
+}
+
+.app-brand__icon {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(120, 86, 255, 0.24));
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  border-radius: 10px;
+  color: #7ef3ff;
+  display: inline-flex;
+  font-size: 18px;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.app-brand__title.ant-typography {
+  color: #f4f9ff;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.app-brand__subtitle {
+  color: #9fb3c8;
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.app-menu.ant-menu {
+  background: transparent;
+  border-bottom: none;
+  min-width: 420px;
+}
+
+.app-menu.ant-menu .ant-menu-item {
+  border-radius: 8px;
+  color: #d4dbe5;
+}
+
+.app-menu.ant-menu .ant-menu-item-selected {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.26), rgba(120, 86, 255, 0.28));
+  border: 1px solid rgba(0, 229, 255, 0.38);
+  color: #ffffff;
+}
+
+.app-header__right {
+  flex-shrink: 0;
+}
+
+.app-content {
+  margin: 0 auto;
+  max-width: 1260px;
+  padding: 24px 44px 28px;
+  width: 100%;
+}
+
+.app-footer {
+  background: transparent;
+  color: #9aa5b1;
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .app-header {
+    height: auto;
+    padding: 12px 16px;
+  }
+
+  .app-header__left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .app-menu.ant-menu {
+    min-width: 280px;
+  }
+
+  .app-content {
+    padding: 18px 16px 22px;
+  }
+}

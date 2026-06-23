@@ -102,6 +102,8 @@ function buildDemoGoal(template, employee, period, assignedBy, index, templateIn
   return {
     _id: createGoalId(),
     employeeId,
+    employeeName: employee?.name ?? 'Sin empleado',
+    employeePosition: employee?.position ?? '-',
     assignedBy,
     periodId: period?._id ?? null,
     periodLabel: getPeriodLabel(period),
@@ -181,6 +183,8 @@ export async function createGoal(payload) {
   const goal = {
     _id: createGoalId(),
     employeeId: payload.employeeId,
+    employeeName: payload.employeeName ?? '',
+    employeePosition: payload.employeePosition ?? '',
     assignedBy: payload.assignedBy ?? null,
     periodId: payload.periodId ?? null,
     periodLabel: payload.periodLabel ?? '',

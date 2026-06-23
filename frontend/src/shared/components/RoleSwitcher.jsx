@@ -11,7 +11,6 @@ export const RoleSwitcher = () => {
 
   const handleChange = (value) => {
     switchRole(value);
-    // Redirigir al inicio del rol correspondiente
     if (value === 'admin') {
       navigate('/admin');
     } else {

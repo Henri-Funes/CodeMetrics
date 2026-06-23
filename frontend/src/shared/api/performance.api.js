@@ -12,6 +12,19 @@ export async function listPerformancePeriods() {
   return payload.data ?? [];
 }
 
+export async function assignSelfEvaluationPeriods(periods) {
+  const payload = await requestApi(
+    {
+      method: 'post',
+      url: '/api/performance/periods/assign-self-evaluations',
+      data: { periods }
+    },
+    'No fue posible asignar autoevaluaciones.'
+  );
+
+  return payload.data ?? null;
+}
+
 export async function listPerformanceReviews(params = {}) {
   const payload = await requestApi(
     {

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 import { listEmployees } from '../shared/api/employees.api.js';
+import { readSessionUserId, writeSessionUserId } from '../shared/utils/sessionPersistence.js';
 
 const AuthContext = createContext();
 
@@ -20,8 +21,13 @@ export const AuthProvider = ({ children }) => {
 
         setEmployees(data);
 
+        const savedUserId = readSessionUserId();
+        const savedUser = savedUserId
+          ? data.find((employee) => String(employee._id) === String(savedUserId))
+          : null;
         const defaultEmployee = data.find((employee) => employee.role === 'employee') ?? data[0] ?? null;
-        setCurrentUserId(defaultEmployee?._id ?? null);
+
+        setCurrentUserId(savedUser?._id ?? defaultEmployee?._id ?? null);
       })
       .catch(() => {
         if (!active) return;
@@ -70,11 +76,13 @@ export const AuthProvider = ({ children }) => {
 
     if (roleUsers.length > 0) {
       setCurrentUserId(roleUsers[0]._id);
+      writeSessionUserId(roleUsers[0]._id);
     }
   };
 
   const selectUser = (userId) => {
     setCurrentUserId(userId);
+    writeSessionUserId(userId);
   };
 
   return (

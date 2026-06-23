@@ -17,11 +17,13 @@ import {
   Statistic,
   Table,
   Tag,
+  Tooltip,
   Typography
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
 import { useAuth } from '../../../app/AuthContext';
+import { useGoalInspector } from '../../../shared/context/GoalInspectorContext.jsx';
 import { formatDate } from '../../../shared/utils/formatters.js';
 import { useAdminGoalsController } from '../controllers/useAdminGoalsController.js';
 import {
@@ -31,7 +33,7 @@ import {
   goalUnitOptions
 } from '../models/goals.model.js';
 
-const { Paragraph, Text } = Typography;
+const { Text } = Typography;
 
 const progressColorByStatus = {
   completed: '#1dd1a1',
@@ -41,19 +43,12 @@ const progressColorByStatus = {
   cancelled: '#ff6b6b'
 };
 
-function getMaxValue(goal) {
-  if (goal.unit === 'boolean') return 1;
-  if (goal.unit === 'percent') return 100;
-  return goal.targetValue || 100;
-}
-
 export function AdminGoalsManager() {
   const { currentUser } = useAuth();
+  const { openInspector, refreshPanels } = useGoalInspector();
   const [goalForm] = Form.useForm();
-  const [progressForm] = Form.useForm();
   const [openGoalModal, setOpenGoalModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
-  const [progressGoal, setProgressGoal] = useState(null);
   const {
     loading,
     saving,
@@ -66,7 +61,6 @@ export function AdminGoalsManager() {
     setFilters,
     summary,
     saveGoal,
-    submitProgress,
     cancelGoal,
     reload
   } = useAdminGoalsController(currentUser);
@@ -122,24 +116,11 @@ export function AdminGoalsManager() {
     setOpenGoalModal(true);
   };
 
-  const openProgressModal = (goal) => {
-    setProgressGoal(goal);
-    progressForm.setFieldsValue({
-      currentValue: goal.currentValue,
-      evidenceNote: goal.evidenceNote
-    });
-  };
-
   const handleGoalSubmit = async () => {
     const values = await goalForm.validateFields();
     await saveGoal(values, editingGoal?._id ?? null);
+    await refreshPanels();
     setOpenGoalModal(false);
-  };
-
-  const handleProgressSubmit = async () => {
-    const values = await progressForm.validateFields();
-    await submitProgress(progressGoal._id, values);
-    setProgressGoal(null);
   };
 
   if (loading) {
@@ -162,127 +143,138 @@ export function AdminGoalsManager() {
       ) : null}
       {successMessage ? <Alert showIcon type="success" message={successMessage} /> : null}
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={6}>
-          <Card>
-            <Statistic title="Objetivos activos" value={summary.total} />
+      <Row gutter={[12, 12]}>
+        <Col xs={12} sm={6}>
+          <Card size="small" styles={{ body: { padding: '12px 16px' } }}>
+            <Statistic title="Activos" value={summary.total} />
           </Card>
         </Col>
-        <Col xs={24} md={6}>
-          <Card>
+        <Col xs={12} sm={6}>
+          <Card size="small" styles={{ body: { padding: '12px 16px' } }}>
             <Statistic title="Completados" value={summary.completed} />
           </Card>
         </Col>
-        <Col xs={24} md={6}>
-          <Card>
+        <Col xs={12} sm={6}>
+          <Card size="small" styles={{ body: { padding: '12px 16px' } }}>
             <Statistic title="En progreso" value={summary.inProgress} />
           </Card>
         </Col>
-        <Col xs={24} md={6}>
-          <Card>
-            <Statistic title="Promedio avance" value={summary.averageProgress} suffix="%" />
+        <Col xs={12} sm={6}>
+          <Card size="small" styles={{ body: { padding: '12px 16px' } }}>
+            <Statistic title="Avance prom." value={summary.averageProgress} suffix="%" />
           </Card>
         </Col>
       </Row>
 
       <Card
+        size="small"
         title="Planificacion y objetivos"
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
+          <Button type="primary" size="small" icon={<PlusOutlined />} onClick={openCreateModal}>
             Asignar objetivo
           </Button>
         }
       >
-        <Space wrap style={{ marginBottom: 16 }}>
+        <Space wrap size={[8, 8]} style={{ marginBottom: 12 }}>
           <Select
             allowClear
             showSearch
+            size="small"
             optionFilterProp="label"
             placeholder="Empleado"
-            style={{ width: 240 }}
+            style={{ width: 180 }}
             value={filters.employeeId}
             onChange={(value) => setFilters((prev) => ({ ...prev, employeeId: value }))}
             options={employeeOptions}
           />
           <Select
             allowClear
+            size="small"
             placeholder="Periodo"
-            style={{ width: 160 }}
+            style={{ width: 110 }}
             value={filters.periodId}
             onChange={(value) => setFilters((prev) => ({ ...prev, periodId: value }))}
             options={periodOptions}
           />
           <Select
             allowClear
+            size="small"
             placeholder="Estado"
-            style={{ width: 160 }}
+            style={{ width: 130 }}
             value={filters.status}
             onChange={(value) => setFilters((prev) => ({ ...prev, status: value }))}
             options={goalStatusOptions}
           />
           <Select
             allowClear
+            size="small"
             placeholder="Categoria"
-            style={{ width: 180 }}
+            style={{ width: 140 }}
             value={filters.category}
             onChange={(value) => setFilters((prev) => ({ ...prev, category: value }))}
             options={goalCategoryOptions}
           />
           <Input.Search
             allowClear
-            placeholder="Buscar objetivo o empleado"
-            style={{ width: 260 }}
+            size="small"
+            placeholder="Buscar"
+            style={{ width: 180 }}
             value={filters.search}
             onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
           />
         </Space>
 
         <Table
+          size="small"
           rowKey="_id"
           dataSource={filteredGoals}
-          pagination={{ pageSize: 8 }}
-          scroll={{ x: 1560 }}
+          pagination={{ pageSize: 10, size: 'small', showSizeChanger: false }}
+          tableLayout="fixed"
+          scroll={{ x: 980 }}
           columns={[
             {
               title: 'Empleado',
               key: 'employee',
-              width: 220,
+              width: 140,
+              ellipsis: true,
               render: (_, goal) => (
-                <Space orientation="vertical" size={0}>
-                  <Text strong>{goal.employeeName}</Text>
-                  <Text type="secondary">{goal.employeePosition}</Text>
-                </Space>
+                <Tooltip title={goal.employeePosition}>
+                  <Text strong ellipsis style={{ maxWidth: 130 }}>
+                    {goal.employeeName}
+                  </Text>
+                </Tooltip>
               )
             },
             {
               title: 'Objetivo',
               key: 'goal',
-              width: 390,
+              ellipsis: true,
               render: (_, goal) => (
-                <Space orientation="vertical" size={0} style={{ minWidth: 0 }}>
-                  <Text strong>{goal.title}</Text>
-                  <Paragraph type="secondary" ellipsis={{ rows: 2 }} style={{ marginBottom: 0 }}>
-                    {goal.description}
-                  </Paragraph>
-                </Space>
+                <Tooltip title={goal.description}>
+                  <Text ellipsis style={{ maxWidth: '100%' }}>
+                    {goal.title}
+                  </Text>
+                </Tooltip>
               )
             },
             {
-              title: 'Categoria',
+              title: 'Cat.',
               dataIndex: 'categoryLabel',
               key: 'category',
-              width: 150,
-              render: (value) => <Tag>{value}</Tag>
+              width: 100,
+              ellipsis: true,
+              render: (value) => <Tag style={{ margin: 0 }}>{value}</Tag>
             },
             {
-              title: 'Progreso',
+              title: 'Avance',
               key: 'progress',
-              width: 180,
+              width: 120,
               render: (_, goal) => (
                 <Progress
                   percent={goal.progress}
                   size="small"
                   strokeColor={progressColorByStatus[goal.status]}
+                  format={(percent) => `${percent}%`}
                 />
               )
             },
@@ -290,42 +282,46 @@ export function AdminGoalsManager() {
               title: 'Estado',
               dataIndex: 'status',
               key: 'status',
-              width: 130,
-              render: (value, goal) => <Tag color={goalStatusColor[value]}>{goal.statusLabel}</Tag>
+              width: 100,
+              render: (value, goal) => (
+                <Tag color={goalStatusColor[value]} style={{ margin: 0 }}>
+                  {goal.statusLabel}
+                </Tag>
+              )
             },
             {
               title: 'Periodo',
-              dataIndex: 'periodLabel',
-              key: 'period',
-              width: 120
-            },
-            {
-              title: 'Vence',
-              dataIndex: 'dueDate',
-              key: 'dueDate',
-              width: 130,
-              render: (value) => formatDate(value)
+              key: 'periodDue',
+              width: 110,
+              render: (_, goal) => (
+                <Space orientation="vertical" size={0}>
+                  <Text style={{ fontSize: 12 }}>{goal.periodLabel}</Text>
+                  <Text type="secondary" style={{ fontSize: 11 }}>
+                    {goal.dueDate ? formatDate(goal.dueDate) : '-'}
+                  </Text>
+                </Space>
+              )
             },
             {
               title: 'Acciones',
               key: 'actions',
-              width: 250,
+              width: 200,
+              fixed: 'right',
               render: (_, goal) => (
-                <Space size={8}>
-                  <Button size="small" onClick={() => openEditModal(goal)} disabled={saving}>
-                    Editar
+                <Space size={0} wrap>
+                  <Button type="link" size="small" onClick={() => openInspector(goal)}>
+                    Ver
                   </Button>
-                  <Button size="small" onClick={() => openProgressModal(goal)} disabled={saving}>
-                    Avance
+                  <Button type="link" size="small" onClick={() => openEditModal(goal)} disabled={saving}>
+                    Editar
                   </Button>
                   <Popconfirm
                     title="Cancelar objetivo"
-                    description="El objetivo saldra del resumen activo."
-                    okText="Cancelar objetivo"
-                    cancelText="Volver"
+                    okText="Si"
+                    cancelText="No"
                     onConfirm={() => cancelGoal(goal._id)}
                   >
-                    <Button size="small" danger disabled={saving || goal.status === 'cancelled'}>
+                    <Button type="link" size="small" danger disabled={saving || goal.status === 'cancelled'}>
                       Cancelar
                     </Button>
                   </Popconfirm>
@@ -400,29 +396,6 @@ export function AdminGoalsManager() {
               </Form.Item>
             </Col>
           </Row>
-        </Form>
-      </Modal>
-
-      <Modal
-        title={progressGoal ? `Actualizar avance: ${progressGoal.title}` : 'Actualizar avance'}
-        open={Boolean(progressGoal)}
-        onCancel={() => setProgressGoal(null)}
-        onOk={handleProgressSubmit}
-        okText="Guardar avance"
-        confirmLoading={saving}
-        destroyOnHidden
-      >
-        <Form layout="vertical" form={progressForm}>
-          <Form.Item
-            name="currentValue"
-            label={`Avance actual (${progressGoal?.unitLabel ?? 'valor'})`}
-            rules={[{ required: true }]}
-          >
-            <InputNumber min={0} max={progressGoal ? getMaxValue(progressGoal) : 100} style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item name="evidenceNote" label="Nota de evidencia">
-            <Input.TextArea rows={3} maxLength={220} showCount />
-          </Form.Item>
         </Form>
       </Modal>
     </Space>

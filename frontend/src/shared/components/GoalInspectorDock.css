@@ -1,0 +1,72 @@
+.goal-inspector-dock {
+  position: fixed;
+  width: min(400px, calc(100vw - 32px));
+  max-height: min(72vh, 640px);
+  display: flex;
+  flex-direction: column;
+  border: 2px solid rgba(0, 229, 255, 0.45);
+  border-radius: 12px;
+  background: #1a1a1a;
+  box-shadow: 4px 4px 0 rgba(0, 229, 255, 0.25);
+  overflow: hidden;
+}
+
+.goal-inspector-dock--minimized {
+  max-height: none;
+  width: min(360px, calc(100vw - 32px));
+}
+
+.goal-inspector-dock__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #242424;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+  cursor: grab;
+  user-select: none;
+}
+
+.goal-inspector-dock__header:active {
+  cursor: grabbing;
+}
+
+.goal-inspector-dock__title {
+  flex: 1;
+  min-width: 0;
+}
+
+.goal-inspector-dock__body {
+  padding: 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.goal-inspector-dock__footer {
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(0, 229, 255, 0.15);
+  background: #1e1e1e;
+}
+
+.goal-inspector-dock__peer-list {
+  margin-top: 12px;
+}
+
+.goal-inspector-dock__peer-item {
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.goal-inspector-dock__peer-item:hover {
+  border-color: rgba(0, 229, 255, 0.35);
+}
+
+.goal-inspector-dock__peer-item--active {
+  border-color: rgba(0, 229, 255, 0.65);
+  background: rgba(0, 229, 255, 0.06);
+}

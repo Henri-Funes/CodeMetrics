@@ -5,6 +5,27 @@ export const EVALUATION_STATUS = {
   FINALIZED: 'finalized'
 };
 
+export const PERFORMANCE_PERIOD_STATUS = {
+  DRAFT: 'draft',
+  CALCULATED: 'calculated',
+  CLOSED: 'closed'
+};
+
+export const monthOptions = [
+  { value: 1, label: 'Enero' },
+  { value: 2, label: 'Febrero' },
+  { value: 3, label: 'Marzo' },
+  { value: 4, label: 'Abril' },
+  { value: 5, label: 'Mayo' },
+  { value: 6, label: 'Junio' },
+  { value: 7, label: 'Julio' },
+  { value: 8, label: 'Agosto' },
+  { value: 9, label: 'Septiembre' },
+  { value: 10, label: 'Octubre' },
+  { value: 11, label: 'Noviembre' },
+  { value: 12, label: 'Diciembre' }
+];
+
 export const evaluationStatusOptions = [
   { value: EVALUATION_STATUS.DRAFT, label: 'Borrador' },
   { value: EVALUATION_STATUS.SELF_SUBMITTED, label: 'Autoevaluada' },
@@ -83,8 +104,46 @@ export function filterEvaluationsClient(reviews = [], filters = {}) {
 export function summarizeEvaluations(reviews = []) {
   return {
     total: reviews.length,
+    drafts: reviews.filter((review) => review.status === EVALUATION_STATUS.DRAFT).length,
     pendingSupervisor: reviews.filter((review) => review.status === EVALUATION_STATUS.SELF_SUBMITTED).length,
     reviewed: reviews.filter((review) => review.status === EVALUATION_STATUS.SUPERVISOR_REVIEWED).length,
     finalized: reviews.filter((review) => review.status === EVALUATION_STATUS.FINALIZED).length
   };
+}
+
+export function buildPeriodLabel(month, year) {
+  return `${year}-${String(month).padStart(2, '0')}`;
+}
+
+export function sortPerformancePeriods(periods = []) {
+  return [...periods].sort((left, right) => {
+    if (right.year !== left.year) return right.year - left.year;
+    return right.month - left.month;
+  });
+}
+
+export function filterEmployeeEvaluationPeriods(periods = []) {
+  return periods.filter((period) => period.status !== PERFORMANCE_PERIOD_STATUS.CLOSED);
+}
+
+export function filterOpenPerformancePeriods(periods = []) {
+  return periods.filter((period) => period.status === PERFORMANCE_PERIOD_STATUS.DRAFT);
+}
+
+export function formatAssignPeriodsSummary(result = {}) {
+  const created = result.createdPeriods ?? 0;
+  const reused = result.reusedPeriods ?? 0;
+  const assigned = result.assignedReviews ?? 0;
+  const skipped = result.skippedReviews ?? 0;
+
+  return `Periodos creados: ${created}, reutilizados: ${reused}. Autoevaluaciones asignadas: ${assigned}, omitidas: ${skipped}.`;
+}
+
+export function isFuturePeriod(period) {
+  if (!period?.month || !period?.year) return false;
+
+  const now = new Date();
+  const currentIndex = now.getFullYear() * 12 + (now.getMonth() + 1);
+  const periodIndex = period.year * 12 + period.month;
+  return periodIndex > currentIndex;
 }

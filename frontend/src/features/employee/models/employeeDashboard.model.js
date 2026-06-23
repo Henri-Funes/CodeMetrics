@@ -58,3 +58,37 @@ export function toPerformanceHistoryTimeline(reviews = []) {
       };
     });
 }
+
+export function buildEmployeeDashboardNotifications(reviews = []) {
+  const notifications = [];
+
+  const pendingDrafts = reviews.filter((review) => review.status === 'draft');
+  if (pendingDrafts.length > 0) {
+    const periodLabels = pendingDrafts
+      .map((review) => review.periodId?.label ?? 'Sin periodo')
+      .join(', ');
+
+    notifications.push({
+      key: 'pending-self-evaluations',
+      type: 'warning',
+      message: 'Autoevaluaciones pendientes',
+      description: `Tienes ${pendingDrafts.length} autoevaluacion(es) por completar en: ${periodLabels}.`
+    });
+  }
+
+  const submitted = reviews.filter((review) => review.status === 'self_submitted');
+  if (submitted.length > 0) {
+    const periodLabels = submitted
+      .map((review) => review.periodId?.label ?? 'Sin periodo')
+      .join(', ');
+
+    notifications.push({
+      key: 'submitted-self-evaluations',
+      type: 'success',
+      message: 'Autoevaluacion enviada',
+      description: `Tu autoevaluacion del periodo ${periodLabels} fue enviada correctamente. El supervisor la revisara pronto.`
+    });
+  }
+
+  return notifications;
+}

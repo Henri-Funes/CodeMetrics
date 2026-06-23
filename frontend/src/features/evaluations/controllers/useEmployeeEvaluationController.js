@@ -6,7 +6,12 @@ import {
   submitSelfEvaluation,
   updateSelfEvaluation
 } from '../../../shared/api/performance.api.js';
-import { EVALUATION_STATUS, toEvaluationRows } from '../models/evaluations.model.js';
+import {
+  EVALUATION_STATUS,
+  filterEmployeeEvaluationPeriods,
+  sortPerformancePeriods,
+  toEvaluationRows
+} from '../models/evaluations.model.js';
 
 export function useEmployeeEvaluationController(currentUser) {
   const [loading, setLoading] = useState(true);
@@ -34,9 +39,17 @@ export function useEmployeeEvaluationController(currentUser) {
         listPerformanceReviews({ employeeId: currentUser.id })
       ]);
 
-      setPeriods(periodList);
+      const availablePeriods = sortPerformancePeriods(filterEmployeeEvaluationPeriods(periodList));
+
+      setPeriods(availablePeriods);
       setReviews(reviewList);
-      setSelectedPeriodId((current) => current ?? periodList[0]?._id ?? null);
+      setSelectedPeriodId((current) => {
+        if (current && availablePeriods.some((period) => period._id === current)) {
+          return current;
+        }
+
+        return availablePeriods[0]?._id ?? null;
+      });
     } catch (requestError) {
       setError(requestError.message ?? 'No fue posible cargar evaluaciones.');
     } finally {
@@ -59,9 +72,10 @@ export function useEmployeeEvaluationController(currentUser) {
   );
 
   const canEditSelfEvaluation =
-    !selectedReview ||
-    selectedReview.status === EVALUATION_STATUS.DRAFT ||
-    selectedReview.status === EVALUATION_STATUS.SELF_SUBMITTED;
+    Boolean(selectedPeriodId) &&
+    (!selectedReview ||
+      selectedReview.status === EVALUATION_STATUS.DRAFT ||
+      selectedReview.status === EVALUATION_STATUS.SELF_SUBMITTED);
 
   const saveSelfEvaluation = async (values) => {
     setSaving(true);

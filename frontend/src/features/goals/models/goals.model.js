@@ -185,18 +185,20 @@ export function summarizeGoals(goals = []) {
 }
 
 export function toGoalRows(goals = [], { employees = [], periods = [] } = {}) {
-  const employeeById = new Map(employees.map((employee) => [employee._id ?? employee.id, employee]));
-  const periodById = new Map(periods.map((period) => [period._id ?? period.id, period]));
+  const employeeById = new Map(
+    employees.map((employee) => [String(employee._id ?? employee.id), employee])
+  );
+  const periodById = new Map(periods.map((period) => [String(period._id ?? period.id), period]));
 
   return goals.map((goal) => {
     const normalized = normalizeGoal(goal);
-    const employee = employeeById.get(normalized.employeeId);
-    const period = periodById.get(normalized.periodId);
+    const employee = employeeById.get(String(normalized.employeeId));
+    const period = periodById.get(String(normalized.periodId));
 
     return {
       ...normalized,
       key: normalized._id,
-      employeeName: employee?.name ?? normalized.employeeName ?? 'Empleado',
+      employeeName: employee?.name ?? normalized.employeeName ?? 'Sin empleado',
       employeePosition: employee?.position ?? normalized.employeePosition ?? '-',
       periodLabel:
         period?.label ??
@@ -207,4 +209,39 @@ export function toGoalRows(goals = [], { employees = [], periods = [] } = {}) {
       unitLabel: getGoalUnitLabel(normalized.unit)
     };
   });
+}
+
+export function formatGoalProgressDetail(goal = {}) {
+  const currentValue = toFiniteNumber(goal.currentValue);
+  const targetValue = toFiniteNumber(goal.targetValue, goal.unit === GOAL_UNITS.PERCENT ? 100 : 1);
+
+  if (goal.unit === GOAL_UNITS.BOOLEAN) {
+    return currentValue >= 1 ? 'Completado (marcado)' : 'Pendiente (sin marcar)';
+  }
+
+  if (goal.unit === GOAL_UNITS.PERCENT) {
+    return `${Math.round(currentValue)}% de avance`;
+  }
+
+  if (goal.unit === GOAL_UNITS.TASKS) {
+    return `${Math.round(currentValue)} de ${Math.round(targetValue)} tareas completadas`;
+  }
+
+  if (goal.unit === GOAL_UNITS.HOURS) {
+    return `${Math.round(currentValue)} de ${Math.round(targetValue)} horas registradas`;
+  }
+
+  return `${Math.round(currentValue)} de ${Math.round(targetValue)} ${getGoalUnitLabel(goal.unit).toLowerCase()}`;
+}
+
+export function summarizeEmployeePeriodGoals(goals = []) {
+  const activeGoals = goals.filter((goal) => goal.status !== GOAL_STATUS.CANCELLED);
+  const total = activeGoals.length;
+  const completed = activeGoals.filter((goal) => goal.status === GOAL_STATUS.COMPLETED).length;
+  const averageProgress =
+    total > 0
+      ? Math.round(activeGoals.reduce((sum, goal) => sum + Number(goal.progress ?? 0), 0) / total)
+      : 0;
+
+  return { total, completed, averageProgress };
 }

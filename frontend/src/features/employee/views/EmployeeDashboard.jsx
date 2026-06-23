@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Button,
@@ -31,8 +31,14 @@ const scoreColorByStatus = {
 
 export function EmployeeDashboard() {
   const { currentUser } = useAuth();
-  const { loading, error, latestReview, performanceTimeline, wallet, kpiCards, scoreStatus, reload } =
+  const [dismissedNotifications, setDismissedNotifications] = useState([]);
+  const { loading, error, latestReview, performanceTimeline, wallet, kpiCards, scoreStatus, notifications, reload } =
     useEmployeeDashboardController(currentUser);
+
+  const visibleNotifications = useMemo(
+    () => notifications.filter((notification) => !dismissedNotifications.includes(notification.key)),
+    [notifications, dismissedNotifications]
+  );
 
   if (currentUser.role !== 'employee') {
     return (
@@ -62,6 +68,18 @@ export function EmployeeDashboard() {
           }
         />
       ) : null}
+
+      {visibleNotifications.map((notification) => (
+        <Alert
+          key={notification.key}
+          showIcon
+          type={notification.type}
+          message={notification.message}
+          description={notification.description}
+          closable
+          onClose={() => setDismissedNotifications((current) => [...current, notification.key])}
+        />
+      ))}
 
       <Card>
         <Space orientation="vertical" size={4}>

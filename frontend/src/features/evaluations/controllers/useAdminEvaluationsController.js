@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { listEmployees } from '../../../shared/api/employees.api.js';
 import {
+  assignSelfEvaluationPeriods,
   finalizePerformanceReview,
   listPerformancePeriods,
   listPerformanceReviews,
@@ -9,9 +10,20 @@ import {
 } from '../../../shared/api/performance.api.js';
 import {
   filterEvaluationsClient,
+  filterOpenPerformancePeriods,
+  formatAssignPeriodsSummary,
+  sortPerformancePeriods,
   summarizeEvaluations,
   toEvaluationRows
 } from '../models/evaluations.model.js';
+import { readEvaluationFilters, writeEvaluationFilters } from '../../../shared/utils/sessionPersistence.js';
+
+const DEFAULT_FILTERS = {
+  status: undefined,
+  periodId: undefined,
+  employeeId: undefined,
+  search: ''
+};
 
 export function useAdminEvaluationsController(currentUser) {
   const [loading, setLoading] = useState(true);
@@ -21,12 +33,18 @@ export function useAdminEvaluationsController(currentUser) {
   const [reviews, setReviews] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [periods, setPeriods] = useState([]);
-  const [filters, setFilters] = useState({
-    status: undefined,
-    periodId: undefined,
-    employeeId: undefined,
-    search: ''
-  });
+  const [filters, setFiltersState] = useState(() => ({
+    ...DEFAULT_FILTERS,
+    ...(readEvaluationFilters() ?? {})
+  }));
+
+  const setFilters = useCallback((updater) => {
+    setFiltersState((previous) => {
+      const next = typeof updater === 'function' ? updater(previous) : updater;
+      writeEvaluationFilters(next);
+      return next;
+    });
+  }, []);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -41,7 +59,7 @@ export function useAdminEvaluationsController(currentUser) {
 
       setReviews(reviewList);
       setEmployees(employeeList);
-      setPeriods(periodList);
+      setPeriods(sortPerformancePeriods(periodList));
     } catch (requestError) {
       setError(requestError.message ?? 'No fue posible cargar evaluaciones.');
     } finally {
@@ -59,6 +77,25 @@ export function useAdminEvaluationsController(currentUser) {
     [evaluationRows, filters]
   );
   const summary = useMemo(() => summarizeEvaluations(evaluationRows), [evaluationRows]);
+  const openPeriods = useMemo(() => filterOpenPerformancePeriods(periods), [periods]);
+
+  const assignPeriods = async (periodInputs) => {
+    setSaving(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const result = await assignSelfEvaluationPeriods(periodInputs);
+      setSuccessMessage(formatAssignPeriodsSummary(result));
+      await reload();
+      return result;
+    } catch (requestError) {
+      setError(requestError.message ?? 'No fue posible asignar autoevaluaciones.');
+      throw requestError;
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const saveSupervisorEvaluation = async (reviewId, values) => {
     setSaving(true);
@@ -104,9 +141,11 @@ export function useAdminEvaluationsController(currentUser) {
     filteredReviews,
     employees,
     periods,
+    openPeriods,
     filters,
     setFilters,
     summary,
+    assignPeriods,
     saveSupervisorEvaluation,
     finalizeReview,
     reload

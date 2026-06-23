@@ -1,4 +1,5 @@
 import {
+  assignSelfEvaluationPeriods,
   createPerformancePeriod,
   createPerformanceReview,
   finalizePerformanceReview,
@@ -55,6 +56,15 @@ export async function updatePerformancePeriodStatusHandler(req, res, next) {
 export async function generatePeriodReviewsHandler(req, res, next) {
   try {
     const result = await generatePeriodReviews(req.params.periodId);
+    res.status(201).json({ data: result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function assignSelfEvaluationPeriodsHandler(req, res, next) {
+  try {
+    const result = await assignSelfEvaluationPeriods(req.body);
     res.status(201).json({ data: result });
   } catch (error) {
     next(error);

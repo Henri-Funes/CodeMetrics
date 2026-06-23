@@ -459,6 +459,90 @@ export async function generatePeriodReviews(periodId) {
   };
 }
 
+function normalizeAssignPeriodInput(payload = {}) {
+  const month = Number(payload.month);
+  const year = Number(payload.year);
+
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    throw createHttpError('Invalid month. Must be between 1 and 12.', 400);
+  }
+
+  if (!Number.isInteger(year) || year < 2020 || year > 2100) {
+    throw createHttpError('Invalid year. Must be between 2020 and 2100.', 400);
+  }
+
+  return { month, year };
+}
+
+async function findOrCreatePerformancePeriod(month, year) {
+  const existing = await PerformancePeriod.findOne({ month, year }).lean();
+
+  if (existing) {
+    return { period: existing, created: false };
+  }
+
+  const period = await createPerformancePeriod({ month, year });
+  return { period, created: true };
+}
+
+export async function assignSelfEvaluationPeriods(payload = {}) {
+  const periodsInput = payload.periods ?? [];
+
+  if (!Array.isArray(periodsInput) || periodsInput.length === 0) {
+    throw createHttpError('At least one period is required.', 400);
+  }
+
+  const employees = await Employee.find({
+    role: EMPLOYEE_ROLES.EMPLOYEE,
+    isActive: true
+  }).lean();
+
+  const result = {
+    periods: [],
+    createdPeriods: 0,
+    reusedPeriods: 0,
+    assignedReviews: 0,
+    skippedReviews: 0
+  };
+
+  for (const rawPeriod of periodsInput) {
+    const { month, year } = normalizeAssignPeriodInput(rawPeriod);
+    const { period, created } = await findOrCreatePerformancePeriod(month, year);
+
+    if (created) {
+      result.createdPeriods += 1;
+    } else {
+      result.reusedPeriods += 1;
+    }
+
+    const existingReviews = await PerformanceReview.find({ periodId: period._id })
+      .select('employeeId')
+      .lean();
+    const reviewedEmployeeIds = new Set(
+      existingReviews.map((review) => review.employeeId.toString())
+    );
+
+    const draftsToInsert = employees
+      .filter((employee) => !reviewedEmployeeIds.has(employee._id.toString()))
+      .map((employee) => ({
+        employeeId: employee._id,
+        periodId: period._id,
+        status: PERFORMANCE_REVIEW_STATUS.DRAFT,
+        notes: ''
+      }));
+
+    if (draftsToInsert.length > 0) {
+      await PerformanceReview.insertMany(draftsToInsert);
+      result.assignedReviews += draftsToInsert.length;
+    }
+
+    result.skippedReviews += reviewedEmployeeIds.size;
+    result.periods.push(period);
+  }
+
+  return result;
+}
+
 export async function getPerformanceSummary(query = {}) {
   const filters = buildReviewFilters(query);
   const [summary] = await PerformanceReview.aggregate([

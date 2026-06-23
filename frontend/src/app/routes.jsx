@@ -13,10 +13,20 @@ import { AdminRedemptionsManager } from '../features/admin/views/AdminRedemption
 import { AdminWalletAdjustments } from '../features/admin/views/AdminWalletAdjustments';
 import { AdminGoalsManager } from '../features/goals/views/AdminGoalsManager';
 import { AdminEvaluationsManager } from '../features/evaluations/views/AdminEvaluationsManager';
+import { GoalInspectorProvider } from '../shared/context/GoalInspectorContext.jsx';
+
+function AppLayout() {
+  return (
+    <GoalInspectorProvider>
+      <LayoutBase />
+    </GoalInspectorProvider>
+  );
+}
+
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <LayoutBase />,
+    element: <AppLayout />,
     children: [
       { path: '/', element: <RoleBasedRedirect /> },
       { path: 'status', element: <HomePage /> },

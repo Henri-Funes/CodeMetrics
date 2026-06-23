@@ -11,6 +11,15 @@ import {
 } from '../../../shared/api/goals.api.js';
 import { listPerformancePeriods } from '../../../shared/api/performance.api.js';
 import { filterGoalsClient, summarizeGoals, toGoalRows } from '../models/goals.model.js';
+import { readGoalsFilters, writeGoalsFilters } from '../../../shared/utils/sessionPersistence.js';
+
+const DEFAULT_FILTERS = {
+  employeeId: undefined,
+  periodId: undefined,
+  status: undefined,
+  category: undefined,
+  search: ''
+};
 
 export function useAdminGoalsController(currentUser) {
   const [loading, setLoading] = useState(true);
@@ -20,13 +29,18 @@ export function useAdminGoalsController(currentUser) {
   const [goals, setGoals] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [periods, setPeriods] = useState([]);
-  const [filters, setFilters] = useState({
-    employeeId: undefined,
-    periodId: undefined,
-    status: undefined,
-    category: undefined,
-    search: ''
-  });
+  const [filters, setFiltersState] = useState(() => ({
+    ...DEFAULT_FILTERS,
+    ...(readGoalsFilters() ?? {})
+  }));
+
+  const setFilters = useCallback((updater) => {
+    setFiltersState((previous) => {
+      const next = typeof updater === 'function' ? updater(previous) : updater;
+      writeGoalsFilters(next);
+      return next;
+    });
+  }, []);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -65,10 +79,13 @@ export function useAdminGoalsController(currentUser) {
 
     try {
       const period = periods.find((item) => item._id === payload.periodId);
+      const employee = employees.find((item) => item._id === payload.employeeId);
       const nextPayload = {
         ...payload,
         assignedBy: currentUser?.id ?? null,
-        periodLabel: period?.label ?? ''
+        periodLabel: period?.label ?? '',
+        employeeName: employee?.name ?? '',
+        employeePosition: employee?.position ?? ''
       };
 
       if (editingId) {

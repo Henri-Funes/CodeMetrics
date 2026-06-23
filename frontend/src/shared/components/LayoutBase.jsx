@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import { RoleSwitcher } from './RoleSwitcher';
 import { MiniWalletWidget } from './MiniWalletWidget';
+import { GoalInspectorDock } from './GoalInspectorDock';
 import { useAuth } from '../../app/AuthContext';
 import './LayoutBase.css';
 
@@ -103,6 +104,7 @@ export const LayoutBase = () => {
             <Footer className="app-footer">CodeMetrics ©2026 - SGDLI Academic MVP</Footer>
           </Layout>
         </Layout>
+        <GoalInspectorDock />
       </Layout>
     );
   }

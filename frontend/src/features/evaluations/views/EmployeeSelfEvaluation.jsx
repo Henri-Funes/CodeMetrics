@@ -18,7 +18,7 @@ import {
 import { useAuth } from '../../../app/AuthContext';
 import { formatDate, formatPoints, formatScore } from '../../../shared/utils/formatters.js';
 import { useEmployeeEvaluationController } from '../controllers/useEmployeeEvaluationController.js';
-import { evaluationStatusColor } from '../models/evaluations.model.js';
+import { EVALUATION_STATUS, evaluationStatusColor, isFuturePeriod } from '../models/evaluations.model.js';
 
 const { Paragraph, Text, Title } = Typography;
 
@@ -108,13 +108,21 @@ export function EmployeeSelfEvaluation() {
               label: period.label
             }))}
           />
+          {selectedPeriod && isFuturePeriod(selectedPeriod) ? <Tag color="purple">Periodo futuro</Tag> : null}
           {selectedReview ? (
             <Tag color={evaluationStatusColor[selectedReview.status]}>{selectedReview.statusLabel}</Tag>
+          ) : selectedPeriodId ? (
+            <Tag color={evaluationStatusColor[EVALUATION_STATUS.DRAFT]}>Pendiente</Tag>
           ) : (
             <Tag color="default">Sin enviar</Tag>
           )}
           <Text type="secondary">Periodo: {selectedPeriod?.label ?? 'No seleccionado'}</Text>
         </Space>
+        {periods.length === 0 ? (
+          <Paragraph type="secondary" style={{ marginTop: 12, marginBottom: 0 }}>
+            No hay periodos abiertos. RRHH debe asignar autoevaluaciones primero.
+          </Paragraph>
+        ) : null}
       </Card>
 
       <Card title="Formulario de autoevaluacion">
@@ -153,6 +161,10 @@ export function EmployeeSelfEvaluation() {
           {!canEditSelfEvaluation ? (
             <Paragraph type="secondary" style={{ marginTop: 12, marginBottom: 0 }}>
               Esta evaluacion ya fue revisada o finalizada por el supervisor.
+            </Paragraph>
+          ) : selectedReview?.status === EVALUATION_STATUS.DRAFT ? (
+            <Paragraph type="secondary" style={{ marginTop: 12, marginBottom: 0 }}>
+              Periodo asignado por RRHH. Completa tu autoevaluacion y enviala cuando estes listo.
             </Paragraph>
           ) : null}
         </Form>

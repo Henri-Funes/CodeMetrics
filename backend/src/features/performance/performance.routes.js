@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import {
+  assignSelfEvaluationPeriodsHandler,
   createPerformancePeriodHandler,
   createPerformanceReviewHandler,
   finalizePerformanceReviewHandler,
@@ -22,6 +23,7 @@ export const performanceRoutes = Router();
 
 performanceRoutes.get('/periods', listPerformancePeriodsHandler);
 performanceRoutes.post('/periods', createPerformancePeriodHandler);
+performanceRoutes.post('/periods/assign-self-evaluations', assignSelfEvaluationPeriodsHandler);
 performanceRoutes.get('/periods/:periodId', getPerformancePeriodHandler);
 performanceRoutes.patch('/periods/:periodId/status', updatePerformancePeriodStatusHandler);
 performanceRoutes.post('/periods/:periodId/reviews/generate', generatePeriodReviewsHandler);

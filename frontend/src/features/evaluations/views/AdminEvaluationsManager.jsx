@@ -8,6 +8,7 @@ import {
   Form,
   Input,
   InputNumber,
+  Modal,
   Popconfirm,
   Progress,
   Row,
@@ -20,24 +21,38 @@ import {
   Tag,
   Typography
 } from 'antd';
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
 import { useAuth } from '../../../app/AuthContext';
 import { formatDate, formatPoints, formatScore } from '../../../shared/utils/formatters.js';
 import { useAdminEvaluationsController } from '../controllers/useAdminEvaluationsController.js';
 import {
+  buildPeriodLabel,
   calculateEvaluationPreview,
   evaluationKpis,
   evaluationStatusColor,
-  evaluationStatusOptions
+  evaluationStatusOptions,
+  monthOptions
 } from '../models/evaluations.model.js';
 
 const { Paragraph, Text } = Typography;
 
+const currentDate = new Date();
+
+function createDefaultPeriodRow() {
+  return {
+    month: currentDate.getMonth() + 1,
+    year: currentDate.getFullYear()
+  };
+}
+
 export function AdminEvaluationsManager() {
   const [form] = Form.useForm();
+  const [assignForm] = Form.useForm();
   const { currentUser } = useAuth();
   const [selectedReview, setSelectedReview] = useState(null);
   const [previewKpis, setPreviewKpis] = useState({});
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
   const {
     loading,
     saving,
@@ -46,9 +61,11 @@ export function AdminEvaluationsManager() {
     filteredReviews,
     employees,
     periods,
+    openPeriods,
     filters,
     setFilters,
     summary,
+    assignPeriods,
     saveSupervisorEvaluation,
     finalizeReview,
     reload
@@ -96,6 +113,25 @@ export function AdminEvaluationsManager() {
     setSelectedReview(null);
   };
 
+  const openAssignModal = () => {
+    assignForm.setFieldsValue({
+      periods: [createDefaultPeriodRow()]
+    });
+    setAssignModalOpen(true);
+  };
+
+  const handleAssignPeriods = async () => {
+    const values = await assignForm.validateFields();
+    const periodInputs = (values.periods ?? []).map((period) => ({
+      month: period.month,
+      year: period.year
+    }));
+
+    await assignPeriods(periodInputs);
+    setAssignModalOpen(false);
+    assignForm.resetFields();
+  };
+
   if (loading) {
     return <Skeleton active paragraph={{ rows: 8 }} />;
   }
@@ -117,30 +153,50 @@ export function AdminEvaluationsManager() {
       {successMessage ? <Alert showIcon type="success" message={successMessage} /> : null}
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} md={6}>
+        <Col xs={12} sm={8} lg={4}>
           <Card>
-            <Statistic title="Evaluaciones" value={summary.total} />
+            <Statistic title="Total" value={summary.total} />
           </Card>
         </Col>
-        <Col xs={24} md={6}>
+        <Col xs={12} sm={8} lg={4}>
+          <Card>
+            <Statistic title="Borradores" value={summary.drafts} />
+          </Card>
+        </Col>
+        <Col xs={12} sm={8} lg={4}>
           <Card>
             <Statistic title="Pendientes supervisor" value={summary.pendingSupervisor} />
           </Card>
         </Col>
-        <Col xs={24} md={6}>
+        <Col xs={12} sm={8} lg={4}>
           <Card>
             <Statistic title="Revisadas" value={summary.reviewed} />
           </Card>
         </Col>
-        <Col xs={24} md={6}>
+        <Col xs={12} sm={8} lg={4}>
           <Card>
             <Statistic title="Finalizadas" value={summary.finalized} />
           </Card>
         </Col>
       </Row>
 
+      {openPeriods.length > 0 ? (
+        <Card title="Periodos abiertos para autoevaluacion" size="small">
+          <Space wrap>
+            {openPeriods.map((period) => (
+              <Tag key={period._id} color="blue">
+                {period.label}
+              </Tag>
+            ))}
+          </Space>
+        </Card>
+      ) : null}
+
       <Card title="Evaluaciones de desempeno">
         <Space wrap style={{ marginBottom: 16 }}>
+          <Button type="primary" onClick={openAssignModal}>
+            Asignar autoevaluaciones
+          </Button>
           <Select
             allowClear
             placeholder="Estado"
@@ -244,7 +300,7 @@ export function AdminEvaluationsManager() {
                   <Button
                     size="small"
                     onClick={() => openReviewDrawer(review)}
-                    disabled={review.status === 'finalized'}
+                    disabled={review.status === 'finalized' || review.status === 'draft'}
                   >
                     Revisar
                   </Button>
@@ -270,6 +326,66 @@ export function AdminEvaluationsManager() {
           ]}
         />
       </Card>
+
+      <Modal
+        title="Asignar autoevaluaciones"
+        open={assignModalOpen}
+        onCancel={() => setAssignModalOpen(false)}
+        onOk={handleAssignPeriods}
+        okText="Asignar periodos"
+        cancelText="Cancelar"
+        confirmLoading={saving}
+        destroyOnHidden
+      >
+        <Paragraph type="secondary">
+          Cada fila representa un periodo mensual. Se crearan evaluaciones en borrador para todos los
+          empleados activos, incluyendo periodos futuros.
+        </Paragraph>
+        <Form form={assignForm} layout="vertical">
+          <Form.List name="periods">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...restField }) => (
+                  <Space key={key} align="baseline" wrap style={{ marginBottom: 12 }}>
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'month']}
+                      label="Mes"
+                      rules={[{ required: true, message: 'Selecciona un mes.' }]}
+                    >
+                      <Select style={{ width: 160 }} options={monthOptions} />
+                    </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'year']}
+                      label="Ano"
+                      rules={[{ required: true, message: 'Ingresa el ano.' }]}
+                    >
+                      <InputNumber min={2020} max={2100} style={{ width: 120 }} />
+                    </Form.Item>
+                    <Form.Item shouldUpdate noStyle>
+                      {() => {
+                        const month = assignForm.getFieldValue(['periods', name, 'month']);
+                        const year = assignForm.getFieldValue(['periods', name, 'year']);
+
+                        if (!month || !year) return null;
+
+                        return <Tag color="processing">{buildPeriodLabel(month, year)}</Tag>;
+                      }}
+                    </Form.Item>
+                    {fields.length > 1 ? (
+                      <MinusCircleOutlined onClick={() => remove(name)} />
+                    ) : null}
+                  </Space>
+                ))}
+                <Button type="dashed" onClick={() => add(createDefaultPeriodRow())} icon={<PlusOutlined />}>
+                  Agregar otro periodo
+                </Button>
+              </>
+            )}
+          </Form.List>
+        </Form>
+      </Modal>
 
       <Drawer
         title={selectedReview ? `Revision: ${selectedReview.employeeName}` : 'Revision de desempeno'}

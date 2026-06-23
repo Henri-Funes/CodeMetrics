@@ -4,6 +4,7 @@ import { listPerformanceReviews } from '../../../shared/api/performance.api.js';
 import { getEmployeeWallet } from '../../../shared/api/wallet.api.js';
 import {
   KPI_PRESENTATION,
+  buildEmployeeDashboardNotifications,
   getScoreStatus,
   toPerformanceHistoryTimeline
 } from '../models/employeeDashboard.model.js';
@@ -14,12 +15,14 @@ export function useEmployeeDashboardController(currentUser) {
   const [latestReview, setLatestReview] = useState(null);
   const [performanceHistory, setPerformanceHistory] = useState([]);
   const [wallet, setWallet] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
   const reload = useCallback(() => {
     if (!currentUser?.id || currentUser.role !== 'employee') {
       setLatestReview(null);
       setPerformanceHistory([]);
       setWallet(null);
+      setNotifications([]);
       setLoading(false);
       return Promise.resolve();
     }
@@ -28,16 +31,19 @@ export function useEmployeeDashboardController(currentUser) {
     setError('');
 
     return Promise.all([
-      listPerformanceReviews({ employeeId: currentUser.id, status: 'finalized' }),
+      listPerformanceReviews({ employeeId: currentUser.id }),
       getEmployeeWallet(currentUser.id)
     ])
       .then(([reviews, walletResponse]) => {
-        const sortedReviews = [...reviews].sort(
+        const finalizedReviews = reviews.filter((review) => review.status === 'finalized');
+        const sortedFinalized = [...finalizedReviews].sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-        setLatestReview(sortedReviews[0] ?? null);
-        setPerformanceHistory(sortedReviews);
+
+        setLatestReview(sortedFinalized[0] ?? null);
+        setPerformanceHistory(sortedFinalized);
         setWallet(walletResponse);
+        setNotifications(buildEmployeeDashboardNotifications(reviews));
       })
       .catch((requestError) => {
         setError(requestError.message ?? 'No fue posible cargar tu dashboard.');
@@ -75,6 +81,7 @@ export function useEmployeeDashboardController(currentUser) {
     wallet,
     kpiCards,
     scoreStatus,
+    notifications,
     reload
   };
 }

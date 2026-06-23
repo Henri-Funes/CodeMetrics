@@ -43,5 +43,12 @@ Thumbs.db
 docker-data/
 mongo-data/
 
-# Markdown files (temporary)
+# Markdown files (temporary) — except project documentation
 *.md
+!README.md
+!desarrollo-documentacion/
+!desarrollo-documentacion/**
+!desarrollo-documentacion-UI/
+!desarrollo-documentacion-UI/**
+!desarrollo-documentacion-funcional/
+!desarrollo-documentacion-funcional/**

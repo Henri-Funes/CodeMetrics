@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+import { filterRewardsClient } from '../models/admin.model.js';
 
 import {
   activateReward,
@@ -14,6 +16,16 @@ export function useAdminRewardsController() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [rewards, setRewards] = useState([]);
+  const [filters, setFilters] = useState({
+    category: undefined,
+    availableOnly: undefined,
+    search: ''
+  });
+
+  const filteredRewards = useMemo(
+    () => filterRewardsClient(rewards, filters),
+    [rewards, filters]
+  );
 
   const reload = async () => {
     setLoading(true);
@@ -82,6 +94,9 @@ export function useAdminRewardsController() {
     error,
     successMessage,
     rewards,
+    filteredRewards,
+    filters,
+    setFilters,
     saveReward,
     toggleRewardStatus,
     reload

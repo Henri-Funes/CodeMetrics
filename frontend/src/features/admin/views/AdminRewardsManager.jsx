@@ -31,12 +31,22 @@ export function AdminRewardsManager() {
   const [form] = Form.useForm();
   const [openModal, setOpenModal] = useState(false);
   const [editingReward, setEditingReward] = useState(null);
-  const { loading, saving, error, successMessage, rewards, saveReward, toggleRewardStatus, reload } =
-    useAdminRewardsController();
+  const {
+    loading,
+    saving,
+    error,
+    successMessage,
+    filteredRewards,
+    filters,
+    setFilters,
+    saveReward,
+    toggleRewardStatus,
+    reload
+  } = useAdminRewardsController();
 
   const sortedRewards = useMemo(
-    () => [...rewards].sort((a, b) => Number(a.costInPoints) - Number(b.costInPoints)),
-    [rewards]
+    () => [...filteredRewards].sort((a, b) => Number(a.costInPoints) - Number(b.costInPoints)),
+    [filteredRewards]
   );
 
   const handleOpenCreate = () => {
@@ -73,7 +83,7 @@ export function AdminRewardsManager() {
   }
 
   return (
-    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -96,6 +106,34 @@ export function AdminRewardsManager() {
           </Button>
         }
       >
+        <Space wrap style={{ marginBottom: 16 }}>
+          <Select
+            allowClear
+            placeholder="Categoria"
+            style={{ width: 180 }}
+            value={filters.category}
+            onChange={(value) => setFilters((prev) => ({ ...prev, category: value }))}
+            options={categoryOptions}
+          />
+          <Select
+            allowClear
+            placeholder="Disponibilidad"
+            style={{ width: 180 }}
+            value={filters.availableOnly}
+            onChange={(value) => setFilters((prev) => ({ ...prev, availableOnly: value }))}
+            options={[
+              { label: 'Disponibles', value: 'true' },
+              { label: 'No disponibles', value: 'false' }
+            ]}
+          />
+          <Input.Search
+            allowClear
+            placeholder="Buscar por nombre o descripcion"
+            style={{ width: 280 }}
+            value={filters.search}
+            onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
+          />
+        </Space>
         <Table
           rowKey="_id"
           dataSource={sortedRewards}

@@ -90,10 +90,40 @@
   flex-shrink: 0;
 }
 
+.app-body {
+  min-height: calc(100vh - 74px);
+}
+
+.app-sider {
+  background: rgba(14, 16, 20, 0.95);
+  border-right: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+.app-sider-menu.ant-menu {
+  background: transparent;
+  border-inline-end: none;
+  padding: 12px 8px;
+}
+
+.app-sider-menu.ant-menu .ant-menu-item {
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.app-sider-menu.ant-menu .ant-menu-item-selected {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.26), rgba(120, 86, 255, 0.28));
+  border: 1px solid rgba(0, 229, 255, 0.38);
+}
+
 .app-content {
   margin: 0 auto;
   max-width: 1260px;
   padding: 24px 44px 28px;
+  width: 100%;
+}
+
+.app-content--with-sider {
+  max-width: none;
   width: 100%;
 }
 

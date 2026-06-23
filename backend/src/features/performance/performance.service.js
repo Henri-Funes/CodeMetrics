@@ -2,7 +2,11 @@ import mongoose from 'mongoose';
 
 import { EMPLOYEE_ROLES } from '../employees/employee.constants.js';
 import { Employee } from '../employees/employee.model.js';
-import { PERFORMANCE_PERIOD_STATUS } from './performance.constants.js';
+import {
+  KPI_FIELDS,
+  PERFORMANCE_PERIOD_STATUS,
+  PERFORMANCE_REVIEW_STATUS
+} from './performance.constants.js';
 import { PerformancePeriod } from './performance-period.model.js';
 import { PerformanceReview } from './performance-review.model.js';
 import { calculatePerformanceResult } from './performance.scoring.js';
@@ -34,6 +38,10 @@ function buildReviewFilters(query) {
   if (query.periodId) {
     ensureValidObjectId(query.periodId, 'period id');
     filters.periodId = new mongoose.Types.ObjectId(query.periodId);
+  }
+
+  if (query.status) {
+    filters.status = query.status;
   }
 
   return filters;
@@ -69,6 +77,66 @@ async function ensurePeriodExists(periodId) {
   }
 
   return period;
+}
+
+async function ensureAdminCanReview(adminId) {
+  if (!adminId) {
+    return null;
+  }
+
+  ensureValidObjectId(adminId, 'reviewer id');
+  const reviewer = await Employee.findById(adminId).lean();
+
+  if (!reviewer) {
+    throw createHttpError('Reviewer not found.', 404);
+  }
+
+  if (reviewer.role !== EMPLOYEE_ROLES.ADMIN) {
+    throw createHttpError('Only admin role can submit supervisor evaluations.', 400);
+  }
+
+  return reviewer;
+}
+
+function normalizeSelfEvaluation(payload = {}) {
+  return {
+    technicalAchievements: payload.technicalAchievements ?? '',
+    blockers: payload.blockers ?? '',
+    collaborationNotes: payload.collaborationNotes ?? '',
+    learningNotes: payload.learningNotes ?? '',
+    selfScore: Math.min(Math.max(Number(payload.selfScore ?? 0), 0), 100),
+    submittedAt: new Date()
+  };
+}
+
+function extractSupervisorKpis(payload = {}) {
+  const source = payload.kpis ?? payload;
+
+  return KPI_FIELDS.reduce((kpis, field) => {
+    kpis[field] = source[field];
+    return kpis;
+  }, {});
+}
+
+function buildSupervisorEvaluation(payload = {}) {
+  const kpis = extractSupervisorKpis(payload);
+
+  return {
+    ...kpis,
+    reviewedBy: payload.reviewedBy ?? null,
+    comments: payload.comments ?? '',
+    reviewedAt: new Date()
+  };
+}
+
+function ensureReviewCanReceiveSelfEvaluation(review) {
+  if (review.status === PERFORMANCE_REVIEW_STATUS.FINALIZED) {
+    throw createHttpError('Finalized reviews cannot be edited by the employee.', 409);
+  }
+
+  if (review.status === PERFORMANCE_REVIEW_STATUS.SUPERVISOR_REVIEWED) {
+    throw createHttpError('Supervisor reviewed evaluations cannot be edited by the employee.', 409);
+  }
 }
 
 export async function listPerformancePeriods() {
@@ -144,6 +212,7 @@ export async function createPerformanceReview(payload) {
   await ensurePeriodExists(payload.periodId);
 
   const result = calculatePerformanceResult(payload.kpis);
+  const now = new Date();
 
   try {
     const review = await PerformanceReview.create({
@@ -152,6 +221,53 @@ export async function createPerformanceReview(payload) {
       kpis: result.kpis,
       finalScore: result.finalScore,
       pointsAwarded: result.pointsAwarded,
+      notes: payload.notes ?? '',
+      status: payload.status ?? PERFORMANCE_REVIEW_STATUS.FINALIZED,
+      supervisorEvaluation: {
+        ...result.kpis,
+        reviewedBy: payload.reviewedBy ?? null,
+        comments: payload.notes ?? '',
+        reviewedAt: now
+      },
+      finalizedAt: payload.status === PERFORMANCE_REVIEW_STATUS.FINALIZED || !payload.status ? now : null
+    });
+
+    return getPerformanceReviewById(review._id);
+  } catch (error) {
+    if (error.code === 11000) {
+      throw createHttpError('Employee already has a review for this period.', 409);
+    }
+
+    throw error;
+  }
+}
+
+export async function submitSelfEvaluation(payload) {
+  await ensureEmployeeCanBeReviewed(payload.employeeId);
+  await ensurePeriodExists(payload.periodId);
+
+  const selfEvaluation = normalizeSelfEvaluation(payload.selfEvaluation ?? payload);
+
+  try {
+    let review = await PerformanceReview.findOne({
+      employeeId: payload.employeeId,
+      periodId: payload.periodId
+    });
+
+    if (review) {
+      ensureReviewCanReceiveSelfEvaluation(review);
+      review.selfEvaluation = selfEvaluation;
+      review.status = PERFORMANCE_REVIEW_STATUS.SELF_SUBMITTED;
+      review.notes = payload.notes ?? review.notes;
+      await review.save();
+      return getPerformanceReviewById(review._id);
+    }
+
+    review = await PerformanceReview.create({
+      employeeId: payload.employeeId,
+      periodId: payload.periodId,
+      selfEvaluation,
+      status: PERFORMANCE_REVIEW_STATUS.SELF_SUBMITTED,
       notes: payload.notes ?? ''
     });
 
@@ -163,6 +279,87 @@ export async function createPerformanceReview(payload) {
 
     throw error;
   }
+}
+
+export async function updateSelfEvaluation(reviewId, payload) {
+  ensureValidObjectId(reviewId, 'review id');
+
+  const review = await PerformanceReview.findById(reviewId);
+
+  if (!review) {
+    throw createHttpError('Performance review not found.', 404);
+  }
+
+  ensureReviewCanReceiveSelfEvaluation(review);
+  review.selfEvaluation = normalizeSelfEvaluation(payload.selfEvaluation ?? payload);
+  review.status = PERFORMANCE_REVIEW_STATUS.SELF_SUBMITTED;
+  review.notes = payload.notes ?? review.notes;
+  await review.save();
+
+  return getPerformanceReviewById(review._id);
+}
+
+export async function listPendingSupervisorReviews(query = {}) {
+  return listPerformanceReviews({
+    ...query,
+    status: PERFORMANCE_REVIEW_STATUS.SELF_SUBMITTED
+  });
+}
+
+export async function submitSupervisorEvaluation(reviewId, payload) {
+  ensureValidObjectId(reviewId, 'review id');
+  await ensureAdminCanReview(payload.reviewedBy);
+
+  const review = await PerformanceReview.findById(reviewId);
+
+  if (!review) {
+    throw createHttpError('Performance review not found.', 404);
+  }
+
+  if (review.status === PERFORMANCE_REVIEW_STATUS.FINALIZED) {
+    throw createHttpError('Finalized reviews cannot be reviewed again.', 409);
+  }
+
+  const supervisorEvaluation = buildSupervisorEvaluation(payload);
+  const result = calculatePerformanceResult(supervisorEvaluation);
+
+  review.supervisorEvaluation = supervisorEvaluation;
+  review.kpis = result.kpis;
+  review.finalScore = result.finalScore;
+  review.pointsAwarded = result.pointsAwarded;
+  review.notes = payload.comments ?? review.notes;
+  review.status = PERFORMANCE_REVIEW_STATUS.SUPERVISOR_REVIEWED;
+
+  await review.save();
+  return getPerformanceReviewById(review._id);
+}
+
+export async function finalizePerformanceReview(reviewId) {
+  ensureValidObjectId(reviewId, 'review id');
+
+  const review = await PerformanceReview.findById(reviewId);
+
+  if (!review) {
+    throw createHttpError('Performance review not found.', 404);
+  }
+
+  if (review.status === PERFORMANCE_REVIEW_STATUS.FINALIZED) {
+    return getPerformanceReviewById(review._id);
+  }
+
+  if (review.status !== PERFORMANCE_REVIEW_STATUS.SUPERVISOR_REVIEWED) {
+    throw createHttpError('Only supervisor reviewed evaluations can be finalized.', 409);
+  }
+
+  const result = calculatePerformanceResult(review.kpis);
+  review.kpis = result.kpis;
+  review.finalScore = result.finalScore;
+  review.pointsAwarded = result.pointsAwarded;
+  review.status = PERFORMANCE_REVIEW_STATUS.FINALIZED;
+  review.finalizedAt = new Date();
+
+  await review.save();
+  return getPerformanceReviewById(review._id);
 }
 
 export async function updatePerformanceReview(reviewId, payload) {
@@ -179,6 +376,12 @@ export async function updatePerformanceReview(reviewId, payload) {
     review.kpis = result.kpis;
     review.finalScore = result.finalScore;
     review.pointsAwarded = result.pointsAwarded;
+    review.supervisorEvaluation = {
+      ...review.supervisorEvaluation,
+      ...result.kpis,
+      comments: payload.notes ?? review.supervisorEvaluation?.comments ?? '',
+      reviewedAt: new Date()
+    };
   }
 
   if (payload.notes !== undefined) {
@@ -222,7 +425,22 @@ export async function generatePeriodReviews(periodId) {
         kpis: result.kpis,
         finalScore: result.finalScore,
         pointsAwarded: result.pointsAwarded,
-        notes: 'Generated demo performance review.'
+        notes: 'Generated demo performance review.',
+        status: PERFORMANCE_REVIEW_STATUS.FINALIZED,
+        selfEvaluation: {
+          technicalAchievements: 'Generated demo self evaluation achievements.',
+          blockers: 'Generated demo blockers and context.',
+          collaborationNotes: 'Generated demo collaboration notes.',
+          learningNotes: 'Generated demo learning notes.',
+          selfScore: Math.round(result.finalScore),
+          submittedAt: new Date()
+        },
+        supervisorEvaluation: {
+          ...result.kpis,
+          comments: 'Generated demo supervisor evaluation.',
+          reviewedAt: new Date()
+        },
+        finalizedAt: new Date()
       };
     });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Button, Card, Popconfirm, Skeleton, Space, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Card, Popconfirm, Segmented, Skeleton, Space, Table, Tag, Typography } from 'antd';
 
 import { useAuth } from '../../../app/AuthContext';
 import { useAdminRedemptionsController } from '../controllers/useAdminRedemptionsController.js';
@@ -16,15 +16,24 @@ const statusColor = {
 
 export function AdminRedemptionsManager() {
   const { currentUser } = useAuth();
-  const { loading, updating, error, successMessage, redemptions, updateRedemption, reload } =
-    useAdminRedemptionsController(currentUser);
+  const {
+    loading,
+    updating,
+    error,
+    successMessage,
+    redemptions,
+    statusFilter,
+    setStatusFilter,
+    updateRedemption,
+    reload
+  } = useAdminRedemptionsController(currentUser);
 
   if (loading) {
     return <Skeleton active paragraph={{ rows: 8 }} />;
   }
 
   return (
-    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -40,6 +49,19 @@ export function AdminRedemptionsManager() {
       {successMessage ? <Alert showIcon type="success" message={successMessage} /> : null}
 
       <Card title="Gestion de canjes">
+        <Space style={{ marginBottom: 16 }}>
+          <Segmented
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { label: 'Pendientes', value: 'pending' },
+              { label: 'Aprobados', value: 'approved' },
+              { label: 'Rechazados', value: 'rejected' },
+              { label: 'Entregados', value: 'delivered' },
+              { label: 'Todos', value: 'all' }
+            ]}
+          />
+        </Space>
         <Table
           rowKey="_id"
           dataSource={redemptions}

@@ -5,9 +5,11 @@ import {
   Button,
   Card,
   Col,
+  Descriptions,
   Drawer,
   Empty,
   Input,
+  Result,
   Row,
   Skeleton,
   Space,
@@ -16,6 +18,7 @@ import {
   Typography
 } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../../app/AuthContext';
 import { useStoreController } from '../controllers/useStoreController.js';
@@ -36,16 +39,18 @@ function categoryLabel(category) {
 }
 
 export function StoreCatalog() {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [requestNote, setRequestNote] = useState('');
   const {
     loading,
     submitting,
     error,
-    successMessage,
     rewards,
     wallet,
     selectedReward,
+    checkoutStep,
+    redeemedRewardName,
     estimatedBalanceAfter,
     canRedeemSelected,
     openCheckout,
@@ -70,7 +75,7 @@ export function StoreCatalog() {
   };
 
   return (
-    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -83,10 +88,9 @@ export function StoreCatalog() {
           }
         />
       ) : null}
-      {successMessage ? <Alert showIcon type="success" message={successMessage} /> : null}
 
       <Card>
-        <Space direction="vertical" size={2}>
+        <Space orientation="vertical" size={2}>
           <Text type="secondary">Saldo disponible</Text>
           <Title level={3} style={{ margin: 0 }}>
             {formatPoints(wallet?.balance ?? 0)}
@@ -106,7 +110,7 @@ export function StoreCatalog() {
                   title={reward.name}
                   extra={<Tag color={reward.stock > 5 ? 'green' : 'orange'}>Stock: {reward.stock}</Tag>}
                 >
-                  <Space direction="vertical" size={10} style={{ width: '100%' }}>
+                  <Space orientation="vertical" size={10} style={{ width: '100%' }}>
                     <Paragraph type="secondary" style={{ marginBottom: 0 }}>
                       {reward.description}
                     </Paragraph>
@@ -135,29 +139,48 @@ export function StoreCatalog() {
       )}
 
       <Drawer
-        title={selectedReward ? `Confirmar canje: ${selectedReward.name}` : 'Confirmar canje'}
+        title={
+          checkoutStep === 'success'
+            ? 'Canje solicitado'
+            : selectedReward
+              ? `Confirmar canje: ${selectedReward.name}`
+              : 'Confirmar canje'
+        }
         open={Boolean(selectedReward)}
         onClose={closeCheckout}
-        destroyOnClose
+        destroyOnHidden
       >
-        {selectedReward ? (
-          <Space direction="vertical" size={14} style={{ width: '100%' }}>
-            <Statistic
-              title="Saldo actual"
-              value={wallet?.balance ?? 0}
-              formatter={(value) => formatPoints(value)}
-            />
-            <Statistic
-              title="Costo del premio"
-              value={selectedReward.costInPoints}
-              formatter={(value) => formatPoints(value)}
-            />
-            <Statistic
-              title="Saldo estimado despues del canje"
-              value={estimatedBalanceAfter}
-              formatter={(value) => formatPoints(value)}
-              valueStyle={{ color: estimatedBalanceAfter >= 0 ? '#00ff88' : '#ff4444' }}
-            />
+        {selectedReward && checkoutStep === 'success' ? (
+          <Result
+            status="success"
+            title="Solicitud enviada"
+            subTitle={`Tu canje de "${redeemedRewardName}" quedo en estado pendiente de aprobacion por RRHH.`}
+            extra={[
+              <Button key="close" onClick={closeCheckout}>
+                Cerrar
+              </Button>,
+              <Button key="wallet" type="primary" onClick={() => navigate('/wallet')}>
+                Ir a la billetera
+              </Button>
+            ]}
+          />
+        ) : null}
+
+        {selectedReward && checkoutStep === 'confirm' ? (
+          <Space orientation="vertical" size={14} style={{ width: '100%' }}>
+            <Descriptions column={1} size="small" bordered>
+              <Descriptions.Item label="Saldo actual">
+                {formatPoints(wallet?.balance ?? 0)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Costo del premio">
+                {formatPoints(selectedReward.costInPoints)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Saldo estimado">
+                <Text style={{ color: estimatedBalanceAfter >= 0 ? '#00ff88' : '#ff4444' }}>
+                  {formatPoints(estimatedBalanceAfter)}
+                </Text>
+              </Descriptions.Item>
+            </Descriptions>
             <Input.TextArea
               rows={3}
               maxLength={220}
@@ -166,7 +189,12 @@ export function StoreCatalog() {
               value={requestNote}
               onChange={(event) => setRequestNote(event.target.value)}
             />
-            <Button type="primary" loading={submitting} disabled={!canRedeemSelected} onClick={handleConfirmRedemption}>
+            <Button
+              type="primary"
+              loading={submitting}
+              disabled={!canRedeemSelected}
+              onClick={handleConfirmRedemption}
+            >
               Confirmar solicitud de canje
             </Button>
             {!canRedeemSelected ? (

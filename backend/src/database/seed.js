@@ -3,7 +3,10 @@ import { faker } from '@faker-js/faker';
 import { connectDatabase } from '../config/database.js';
 import { EMPLOYEE_ROLES } from '../features/employees/employee.constants.js';
 import { Employee } from '../features/employees/employee.model.js';
-import { PERFORMANCE_PERIOD_STATUS } from '../features/performance/performance.constants.js';
+import {
+  PERFORMANCE_PERIOD_STATUS,
+  PERFORMANCE_REVIEW_STATUS
+} from '../features/performance/performance.constants.js';
 import { PerformancePeriod } from '../features/performance/performance-period.model.js';
 import { PerformanceReview } from '../features/performance/performance-review.model.js';
 import { calculatePerformanceResult } from '../features/performance/performance.scoring.js';
@@ -219,6 +222,46 @@ function createDemoKpis() {
   };
 }
 
+function createDemoSelfEvaluation(result) {
+  return {
+    technicalAchievements: faker.helpers.arrayElement([
+      'Complete entregables tecnicos priorizados y documente decisiones importantes.',
+      'Resolvi incidencias criticas y mejore estabilidad del modulo asignado.',
+      'Aporte mejoras de calidad y mantuve comunicacion activa con el equipo.'
+    ]),
+    blockers: faker.helpers.arrayElement([
+      'Dependencias externas retrasaron parte del trabajo.',
+      'Se requirio coordinacion adicional con QA y producto.',
+      'No se presentaron bloqueos criticos durante el periodo.'
+    ]),
+    collaborationNotes: faker.helpers.arrayElement([
+      'Participe en revisiones de codigo y apoye a companeros del equipo.',
+      'Coordine entregas con backend, frontend y QA.',
+      'Mantuve comunicacion clara durante el sprint.'
+    ]),
+    learningNotes: faker.helpers.arrayElement([
+      'Profundice en buenas practicas de testing.',
+      'Mejore mi entendimiento del dominio de negocio.',
+      'Refuerce practicas de observabilidad y debugging.'
+    ]),
+    selfScore: Math.min(100, Math.max(0, Math.round(result.finalScore + faker.number.int({ min: -5, max: 5 })))),
+    submittedAt: faker.date.recent({ days: 25 })
+  };
+}
+
+function createDemoSupervisorEvaluation(result, reviewerId) {
+  return {
+    ...result.kpis,
+    reviewedBy: reviewerId,
+    comments: faker.helpers.arrayElement([
+      'Evaluacion demo: desempeno alineado a objetivos del periodo.',
+      'Evaluacion demo: buen balance entre entrega, calidad y colaboracion.',
+      'Evaluacion demo: se identifican avances claros y oportunidades de mejora.'
+    ]),
+    reviewedAt: faker.date.recent({ days: 12 })
+  };
+}
+
 function createAdmin(index) {
   const name = faker.person.fullName();
 
@@ -259,6 +302,7 @@ async function seed() {
   await PerformancePeriod.deleteMany({});
   await Employee.deleteMany({});
   const insertedEmployees = await Employee.insertMany([...admins, ...employees]);
+  const adminReviewer = insertedEmployees.find((employee) => employee.role === EMPLOYEE_ROLES.ADMIN);
 
   const periods = await PerformancePeriod.insertMany(getPastMonths(6));
   const reviewEmployees = insertedEmployees.filter(
@@ -275,7 +319,11 @@ async function seed() {
         kpis: result.kpis,
         finalScore: result.finalScore,
         pointsAwarded: result.pointsAwarded,
-        notes: 'Seeded monthly performance review.'
+        notes: 'Seeded monthly performance review.',
+        status: PERFORMANCE_REVIEW_STATUS.FINALIZED,
+        selfEvaluation: createDemoSelfEvaluation(result),
+        supervisorEvaluation: createDemoSupervisorEvaluation(result, adminReviewer?._id ?? null),
+        finalizedAt: faker.date.recent({ days: 8 })
       };
     })
   );
@@ -320,7 +368,6 @@ async function seed() {
   );
 
   const rewards = await Reward.insertMany(rewardFixtures);
-  const adminReviewer = insertedEmployees.find((employee) => employee.role === EMPLOYEE_ROLES.ADMIN);
   const createdRedemptions = [];
 
   for (let index = 0; index < 18; index += 1) {

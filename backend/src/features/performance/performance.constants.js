@@ -6,6 +6,15 @@ export const PERFORMANCE_PERIOD_STATUS = {
 
 export const PERFORMANCE_PERIOD_STATUS_VALUES = Object.values(PERFORMANCE_PERIOD_STATUS);
 
+export const PERFORMANCE_REVIEW_STATUS = {
+  DRAFT: 'draft',
+  SELF_SUBMITTED: 'self_submitted',
+  SUPERVISOR_REVIEWED: 'supervisor_reviewed',
+  FINALIZED: 'finalized'
+};
+
+export const PERFORMANCE_REVIEW_STATUS_VALUES = Object.values(PERFORMANCE_REVIEW_STATUS);
+
 export const KPI_FIELDS = [
   'qualityScore',
   'deliveryScore',

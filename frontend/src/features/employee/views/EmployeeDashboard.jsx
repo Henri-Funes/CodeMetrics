@@ -18,7 +18,7 @@ import { TrophyOutlined, WalletOutlined } from '@ant-design/icons';
 
 import { useAuth } from '../../../app/AuthContext';
 import { useEmployeeDashboardController } from '../controllers/useEmployeeDashboardController.js';
-import { formatDate, formatPoints, formatScore } from '../../../shared/utils/formatters.js';
+import { formatPoints, formatScore } from '../../../shared/utils/formatters.js';
 
 const { Paragraph, Text, Title } = Typography;
 
@@ -31,7 +31,7 @@ const scoreColorByStatus = {
 
 export function EmployeeDashboard() {
   const { currentUser } = useAuth();
-  const { loading, error, latestReview, wallet, kpiCards, scoreStatus, reload } =
+  const { loading, error, latestReview, performanceTimeline, wallet, kpiCards, scoreStatus, reload } =
     useEmployeeDashboardController(currentUser);
 
   if (currentUser.role !== 'employee') {
@@ -49,7 +49,7 @@ export function EmployeeDashboard() {
   }
 
   return (
-    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -64,7 +64,7 @@ export function EmployeeDashboard() {
       ) : null}
 
       <Card>
-        <Space direction="vertical" size={4}>
+        <Space orientation="vertical" size={4}>
           <Text type="secondary">Empleado activo</Text>
           <Title level={4} style={{ margin: 0 }}>
             {currentUser.name}
@@ -88,7 +88,7 @@ export function EmployeeDashboard() {
             }
           >
             {latestReview ? (
-              <Space direction="vertical" size={12} style={{ width: '100%' }}>
+              <Space orientation="vertical" size={12} style={{ width: '100%' }}>
                 <Progress
                   type="dashboard"
                   percent={Math.round(Number(latestReview.finalScore))}
@@ -110,7 +110,7 @@ export function EmployeeDashboard() {
 
         <Col xs={24} lg={8}>
           <Card title="Merit Wallet">
-            <Space direction="vertical" size={16} style={{ width: '100%' }}>
+            <Space orientation="vertical" size={16} style={{ width: '100%' }}>
               <Statistic
                 title="Saldo actual"
                 value={wallet?.balance ?? 0}
@@ -132,7 +132,7 @@ export function EmployeeDashboard() {
         <Col xs={24} lg={14}>
           <Card title="KPIs">
             {kpiCards.length > 0 ? (
-              <Space direction="vertical" size={10} style={{ width: '100%' }}>
+              <Space orientation="vertical" size={10} style={{ width: '100%' }}>
                 {kpiCards.map((kpi) => (
                   <div key={kpi.key}>
                     <Space style={{ justifyContent: 'space-between', width: '100%' }}>
@@ -150,25 +150,24 @@ export function EmployeeDashboard() {
         </Col>
 
         <Col xs={24} lg={10}>
-          <Card title="Ultimos movimientos">
-            {wallet?.recentTransactions?.length ? (
+          <Card title="Historial de desempeno">
+            {performanceTimeline.length ? (
               <Timeline
-                items={wallet.recentTransactions.slice(0, 5).map((transaction) => ({
-                  color: transaction.points > 0 ? 'green' : 'red',
+                items={performanceTimeline.map((entry) => ({
+                  color: entry.color,
                   children: (
-                    <Space direction="vertical" size={0}>
-                      <Text strong>
-                        {transaction.points > 0 ? '+' : ''}
-                        {formatPoints(transaction.points)}
+                    <Space orientation="vertical" size={0}>
+                      <Text strong>{entry.period}</Text>
+                      <Text>
+                        Score: <Text strong>{formatScore(entry.score)}</Text> / 100
                       </Text>
-                      <Text type="secondary">{formatDate(transaction.createdAt)}</Text>
-                      <Text type="secondary">{transaction.type}</Text>
+                      <Text type="secondary">Puntos: {formatPoints(entry.pointsAwarded)}</Text>
                     </Space>
                   )
                 }))}
               />
             ) : (
-              <Empty description="No hay transacciones recientes." />
+              <Empty description="Aun no hay evaluaciones historicas." />
             )}
           </Card>
         </Col>

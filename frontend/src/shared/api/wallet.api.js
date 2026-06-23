@@ -32,3 +32,29 @@ export async function listEmployeeWalletTransactions(employeeId, params = {}) {
 
   return payload.data ?? [];
 }
+
+export async function createAdminAdjustment(payload) {
+  const response = await requestApi(
+    {
+      method: 'post',
+      url: '/api/wallet/adjustments',
+      data: payload
+    },
+    'No fue posible registrar el ajuste de puntos.'
+  );
+
+  return response.data ?? null;
+}
+
+export async function grantPerformancePeriodBonuses(periodId, createdBy = null) {
+  const response = await requestApi(
+    {
+      method: 'post',
+      url: `/api/wallet/performance-periods/${periodId}/grant-bonuses`,
+      data: { createdBy }
+    },
+    'No fue posible abonar los bonos del periodo.'
+  );
+
+  return response.data ?? null;
+}

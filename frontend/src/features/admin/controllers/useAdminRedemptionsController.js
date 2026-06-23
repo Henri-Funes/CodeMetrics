@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
   approveRedemption,
@@ -13,23 +13,25 @@ export function useAdminRedemptionsController(currentUser) {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [redemptions, setRedemptions] = useState([]);
+  const [statusFilter, setStatusFilter] = useState('pending');
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const list = await listRedemptions();
+      const params = statusFilter && statusFilter !== 'all' ? { status: statusFilter } : {};
+      const list = await listRedemptions(params);
       setRedemptions(list);
     } catch (requestError) {
       setError(requestError.message ?? 'No fue posible cargar los canjes.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter]);
 
   useEffect(() => {
     reload();
-  }, []);
+  }, [reload]);
 
   const updateRedemption = async (redemption, action, decisionReason = '') => {
     setUpdating(true);
@@ -67,6 +69,8 @@ export function useAdminRedemptionsController(currentUser) {
     error,
     successMessage,
     redemptions,
+    statusFilter,
+    setStatusFilter,
     updateRedemption,
     reload
   };

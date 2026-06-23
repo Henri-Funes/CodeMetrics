@@ -12,6 +12,8 @@ export function useStoreController(currentUser) {
   const [rewards, setRewards] = useState([]);
   const [wallet, setWallet] = useState(null);
   const [selectedReward, setSelectedReward] = useState(null);
+  const [checkoutStep, setCheckoutStep] = useState('confirm');
+  const [redeemedRewardName, setRedeemedRewardName] = useState('');
 
   const reload = async () => {
     if (!currentUser?.id || currentUser.role !== 'employee') {
@@ -53,11 +55,15 @@ export function useStoreController(currentUser) {
 
   const openCheckout = (reward) => {
     setSelectedReward(reward);
+    setCheckoutStep('confirm');
     setSuccessMessage('');
+    setRedeemedRewardName('');
   };
 
   const closeCheckout = () => {
     setSelectedReward(null);
+    setCheckoutStep('confirm');
+    setRedeemedRewardName('');
   };
 
   const submitRedemption = async (requestNote = '') => {
@@ -74,9 +80,10 @@ export function useStoreController(currentUser) {
         requestNote
       });
 
-      setSuccessMessage(`Canje solicitado para "${selectedReward.name}".`);
+      setRedeemedRewardName(selectedReward.name);
+      setCheckoutStep('success');
+      setSuccessMessage('');
       await reload();
-      setSelectedReward(null);
     } catch (requestError) {
       setError(requestError.message ?? 'No fue posible solicitar el canje.');
     } finally {
@@ -92,6 +99,8 @@ export function useStoreController(currentUser) {
     rewards,
     wallet,
     selectedReward,
+    checkoutStep,
+    redeemedRewardName,
     estimatedBalanceAfter,
     canRedeemSelected,
     openCheckout,

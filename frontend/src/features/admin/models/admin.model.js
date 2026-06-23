@@ -9,6 +9,46 @@ export function toTopPerformerRows(topPerformers = []) {
   }));
 }
 
+export function toPeriodRows(periods = []) {
+  return periods.map((period) => ({
+    key: period._id,
+    id: period._id,
+    label: period.label ?? `${period.year}-${String(period.month).padStart(2, '0')}`,
+    status: period.status ?? 'draft',
+    month: period.month,
+    year: period.year,
+    calculatedAt: period.calculatedAt ?? null,
+    closedAt: period.closedAt ?? null
+  }));
+}
+
+export function filterRewardsClient(rewards, { category, availableOnly, search }) {
+  const normalizedSearch = String(search ?? '')
+    .trim()
+    .toLowerCase();
+
+  return rewards.filter((reward) => {
+    if (category && reward.category !== category) {
+      return false;
+    }
+
+    if (availableOnly === 'true' && (!reward.isActive || Number(reward.stock) <= 0)) {
+      return false;
+    }
+
+    if (availableOnly === 'false' && reward.isActive && Number(reward.stock) > 0) {
+      return false;
+    }
+
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    const haystack = `${reward.name} ${reward.description} ${reward.category}`.toLowerCase();
+    return haystack.includes(normalizedSearch);
+  });
+}
+
 export function toRedemptionSummaryRows(summary = {}) {
   const byStatus = summary.byStatus ?? {};
   return Object.entries(byStatus).map(([status, data]) => ({

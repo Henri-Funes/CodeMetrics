@@ -1,14 +1,19 @@
 import {
   createPerformancePeriod,
   createPerformanceReview,
+  finalizePerformanceReview,
   generatePeriodReviews,
   getPerformancePeriodById,
   getPerformanceReviewById,
   getPerformanceSummary,
+  listPendingSupervisorReviews,
   listPerformancePeriods,
   listPerformanceReviews,
+  submitSelfEvaluation,
+  submitSupervisorEvaluation,
   updatePerformancePeriodStatus,
-  updatePerformanceReview
+  updatePerformanceReview,
+  updateSelfEvaluation
 } from './performance.service.js';
 
 export async function listPerformancePeriodsHandler(_req, res, next) {
@@ -65,6 +70,15 @@ export async function listPerformanceReviewsHandler(req, res, next) {
   }
 }
 
+export async function listPendingSupervisorReviewsHandler(req, res, next) {
+  try {
+    const reviews = await listPendingSupervisorReviews(req.query);
+    res.json({ data: reviews });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getPerformanceReviewHandler(req, res, next) {
   try {
     const review = await getPerformanceReviewById(req.params.reviewId);
@@ -78,6 +92,42 @@ export async function createPerformanceReviewHandler(req, res, next) {
   try {
     const review = await createPerformanceReview(req.body);
     res.status(201).json({ data: review });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function submitSelfEvaluationHandler(req, res, next) {
+  try {
+    const review = await submitSelfEvaluation(req.body);
+    res.status(201).json({ data: review });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateSelfEvaluationHandler(req, res, next) {
+  try {
+    const review = await updateSelfEvaluation(req.params.reviewId, req.body);
+    res.json({ data: review });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function submitSupervisorEvaluationHandler(req, res, next) {
+  try {
+    const review = await submitSupervisorEvaluation(req.params.reviewId, req.body);
+    res.json({ data: review });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function finalizePerformanceReviewHandler(req, res, next) {
+  try {
+    const review = await finalizePerformanceReview(req.params.reviewId, req.body);
+    res.json({ data: review });
   } catch (error) {
     next(error);
   }

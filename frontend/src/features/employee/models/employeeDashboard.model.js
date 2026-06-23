@@ -32,3 +32,29 @@ export function getScoreStatus(score) {
   if (score >= 70) return 'regular';
   return 'low';
 }
+
+export function getTimelineColorByScore(score) {
+  if (score >= 80) return 'green';
+  if (score >= 60) return 'orange';
+  return 'red';
+}
+
+export function toPerformanceHistoryTimeline(reviews = []) {
+  return [...reviews]
+    .sort((a, b) => {
+      const periodA = a.periodId?.label ?? '';
+      const periodB = b.periodId?.label ?? '';
+      return periodB.localeCompare(periodA);
+    })
+    .map((review) => {
+      const score = Number(review.finalScore ?? 0);
+
+      return {
+        key: review._id,
+        period: review.periodId?.label ?? 'Sin periodo',
+        score,
+        pointsAwarded: Number(review.pointsAwarded ?? 0),
+        color: getTimelineColorByScore(score)
+      };
+    });
+}

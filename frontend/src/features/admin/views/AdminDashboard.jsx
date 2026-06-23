@@ -2,8 +2,8 @@ import React from 'react';
 import { Alert, Button, Card, Col, Row, Skeleton, Space, Statistic, Table, Tag, Typography } from 'antd';
 
 import { useAdminDashboardController } from '../controllers/useAdminDashboardController.js';
-import { toRedemptionSummaryRows, toTopPerformerRows } from '../models/admin.model.js';
-import { formatPoints, formatScore } from '../../../shared/utils/formatters.js';
+import { toPeriodRows, toRedemptionSummaryRows, toTopPerformerRows } from '../models/admin.model.js';
+import { formatDate, formatPoints, formatScore } from '../../../shared/utils/formatters.js';
 
 const { Text } = Typography;
 
@@ -14,8 +14,20 @@ const statusColor = {
   delivered: 'green'
 };
 
+const periodStatusColor = {
+  draft: 'default',
+  calculated: 'processing',
+  closed: 'success'
+};
+
+const periodStatusLabel = {
+  draft: 'Borrador',
+  calculated: 'Calculado',
+  closed: 'Cerrado'
+};
+
 export function AdminDashboard() {
-  const { loading, error, employeeSummary, performanceSummary, redemptionSummary, reload } =
+  const { loading, error, employeeSummary, performanceSummary, redemptionSummary, periods, reload } =
     useAdminDashboardController();
 
   if (loading) {
@@ -24,9 +36,10 @@ export function AdminDashboard() {
 
   const topRows = toTopPerformerRows(performanceSummary?.topPerformers ?? []);
   const redemptionRows = toRedemptionSummaryRows(redemptionSummary ?? {});
+  const periodRows = toPeriodRows(periods ?? []);
 
   return (
-    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -69,6 +82,45 @@ export function AdminDashboard() {
           </Card>
         </Col>
       </Row>
+
+      <Card title="Estado de periodos de desempeno">
+        <Table
+          size="small"
+          rowKey="key"
+          dataSource={periodRows}
+          pagination={{ pageSize: 6, showSizeChanger: false }}
+          locale={{ emptyText: 'No hay periodos registrados.' }}
+          columns={[
+            {
+              title: 'Periodo',
+              dataIndex: 'label',
+              key: 'label'
+            },
+            {
+              title: 'Estado',
+              dataIndex: 'status',
+              key: 'status',
+              render: (value) => (
+                <Tag color={periodStatusColor[value] ?? 'default'}>
+                  {periodStatusLabel[value] ?? value}
+                </Tag>
+              )
+            },
+            {
+              title: 'Calculado',
+              dataIndex: 'calculatedAt',
+              key: 'calculatedAt',
+              render: (value) => formatDate(value)
+            },
+            {
+              title: 'Cerrado',
+              dataIndex: 'closedAt',
+              key: 'closedAt',
+              render: (value) => formatDate(value)
+            }
+          ]}
+        />
+      </Card>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} xl={14}>

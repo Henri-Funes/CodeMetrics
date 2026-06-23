@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 import { EMPLOYEE_ROLES } from '../employees/employee.constants.js';
 import { Employee } from '../employees/employee.model.js';
+import { PERFORMANCE_REVIEW_STATUS } from '../performance/performance.constants.js';
 import { PerformancePeriod } from '../performance/performance-period.model.js';
 import { PerformanceReview } from '../performance/performance-review.model.js';
 import { MeritTransaction } from './merit-transaction.model.js';
@@ -195,6 +196,10 @@ export async function grantPerformanceReviewBonus(reviewId, createdBy = null) {
     throw createHttpError('Performance review not found.', 404);
   }
 
+  if (review.status !== PERFORMANCE_REVIEW_STATUS.FINALIZED) {
+    throw createHttpError('Only finalized performance reviews can grant merit points.', 409);
+  }
+
   const existingTransaction = await MeritTransaction.findOne({
     sourceType: MERIT_TRANSACTION_SOURCE_TYPES.PERFORMANCE_REVIEW,
     sourceId: review._id,
@@ -235,6 +240,7 @@ export async function grantPerformancePeriodBonuses(periodId, createdBy = null) 
 
   const reviews = await PerformanceReview.find({
     periodId,
+    status: PERFORMANCE_REVIEW_STATUS.FINALIZED,
     pointsAwarded: { $gt: 0 }
   }).lean();
 

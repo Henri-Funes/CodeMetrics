@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": "24.x"
   },
   "scripts": {
-    "install:all": "npm ci --prefix frontend && npm ci --prefix backend",
+    "install:all": "npm ci --prefix frontend --include=dev && npm ci --prefix backend",
     "build:frontend": "npm run build --prefix frontend",
-    "build": "npm run build:frontend && node scripts/copy-frontend-build.mjs",
-    "start": "npm run start --prefix backend",
+    "build": "npm run install:all && npm run build:frontend && node scripts/copy-frontend-build.mjs",
+    "start": "node scripts/start-prod.mjs",
     "start:prod": "node scripts/start-prod.mjs",
     "seed": "npm run seed --prefix backend",
     "dev:docker": "docker compose up --build"

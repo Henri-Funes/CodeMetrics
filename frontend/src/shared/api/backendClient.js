@@ -1,8 +1,18 @@
 import axios from 'axios';
 import { toFriendlyApiErrorMessage } from '../utils/apiErrors.js';
 
+function resolveApiBaseUrl() {
+  const configuredUrl = import.meta.env.VITE_API_URL;
+
+  if (configuredUrl !== undefined) {
+    return configuredUrl;
+  }
+
+  return import.meta.env.PROD ? '' : 'http://localhost:3000';
+}
+
 export const apiClient = axios.create({
-  baseURL: import.meta?.env?.VITE_API_URL || 'http://localhost:3000',
+  baseURL: resolveApiBaseUrl(),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'

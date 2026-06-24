@@ -6,19 +6,31 @@ function withDatabaseName(uri, databaseName) {
   return parsedUri.toString();
 }
 
+function resolveTestDatabaseUri() {
+  if (process.env.TEST_MONGODB_URI?.trim()) {
+    return process.env.TEST_MONGODB_URI.trim();
+  }
+
+  const baseUri = process.env.MONGODB_URI?.trim();
+
+  if (!baseUri) {
+    throw new Error(
+      'Missing TEST_MONGODB_URI or MONGODB_URI. Tests need a MongoDB Atlas connection configured in .env.'
+    );
+  }
+
+  return withDatabaseName(baseUri, 'codemetrics_test');
+}
+
 export async function connectTestDatabase() {
-  const baseUri =
-    process.env.TEST_MONGODB_URI ??
-    process.env.MONGODB_URI ??
-    'mongodb://codemetrics:codemetrics_password@mongo:27017/codemetrics?authSource=admin';
-  const uri = process.env.TEST_MONGODB_URI ?? withDatabaseName(baseUri, 'codemetrics_test');
+  const uri = resolveTestDatabaseUri();
 
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
   }
 
   await mongoose.connect(uri, {
-    serverSelectionTimeoutMS: 5000
+    serverSelectionTimeoutMS: 10000
   });
 
   await resetTestDatabase();

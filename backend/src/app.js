@@ -15,13 +15,15 @@ export function createApp() {
   app.use(cors({ origin: env.corsOrigin }));
   app.use(express.json());
 
-  app.get('/', (_req, res) => {
-    res.json({
-      app: 'CodeMetrics API',
-      status: 'running',
-      docs: '/api/health'
+  if (env.nodeEnv !== 'production') {
+    app.get('/', (_req, res) => {
+      res.json({
+        app: 'CodeMetrics API',
+        status: 'running',
+        docs: '/api/health'
+      });
     });
-  });
+  }
 
   registerApiRoutes(app);
 

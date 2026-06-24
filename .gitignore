@@ -39,13 +39,13 @@ Thumbs.db
 *.swp
 *.swo
 
-# Docker and local data
+# Docker local data
 docker-data/
-mongo-data/
 
 # Markdown files (temporary) — except project documentation
 *.md
 !README.md
+!requeriments.md
 !desarrollo-documentacion/
 !desarrollo-documentacion/**
 !desarrollo-documentacion-UI/

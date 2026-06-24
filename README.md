@@ -25,7 +25,7 @@ La demo usa un **selector de usuario simulado** (sin login real) para alternar e
 |------|------------|
 | **Frontend** | React 19, Vite 7, Ant Design 6 |
 | **Backend** | Node.js 24 LTS, Express 5, Mongoose 9 |
-| **Base de datos** | MongoDB 8.2 (local con Docker) / Atlas en producción |
+| **Base de datos** | MongoDB Atlas (`codemetrics`) |
 | **Datos de prueba** | Faker.js — seed manual (`npm run seed` en backend) |
 | **Despliegue** | Monorepo, imagen Docker única para Heroku |
 
@@ -33,7 +33,10 @@ La demo usa un **selector de usuario simulado** (sin login real) para alternar e
 
 ---
 
-## Arranque rápido (Docker)
+## Arranque rápido
+
+1. Copia `.env.example` a `.env` y configura `MONGODB_URI` con tu cluster de MongoDB Atlas.
+2. Levanta los servicios:
 
 ```bash
 docker compose up --build
@@ -44,13 +47,24 @@ docker compose up --build
 | Frontend | http://localhost:5173 |
 | Backend API | http://localhost:3000/api |
 | Health check | http://localhost:3000/api/health |
-| MongoDB | localhost:27017 |
 
-Poblar datos de ejemplo (desde el contenedor o directorio `backend/`):
+Poblar datos de ejemplo:
 
 ```bash
 npm run seed
 ```
+
+## Build de producción (Heroku / un solo servidor)
+
+Desde la raíz del proyecto:
+
+```bash
+npm run install:all
+npm run build
+npm run start:prod
+```
+
+El frontend compilado queda en `backend/public/`. Express sirve la API y la SPA en el mismo puerto (`3000` por defecto). En Heroku las variables (`MONGODB_URI`, `NODE_ENV`, `PORT`) se configuran en Config Vars.
 
 ---
 

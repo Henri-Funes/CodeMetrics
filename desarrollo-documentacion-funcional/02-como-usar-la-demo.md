@@ -6,6 +6,7 @@ Guía paso a paso para demostrar CodeMetrics en entorno local con Docker.
 
 - Docker y Docker Compose instalados.
 - Proyecto clonado en la máquina local.
+- Archivo `.env` en la raíz con `MONGODB_URI` apuntando a MongoDB Atlas (copiar desde `.env.example`).
 
 ## 1) Levantar el entorno
 
@@ -22,8 +23,8 @@ Servicios esperados:
 |----------|--------------|---------|
 | Frontend | `http://localhost:5173` | Interfaz React |
 | Backend | `http://localhost:3000` | API Express |
-| Health API | `http://localhost:3000/api/health` | Estado API y MongoDB |
-| MongoDB | `localhost:27017` | Base de datos local |
+| Health API | `http://localhost:3000/api/health` | Estado API y MongoDB Atlas |
+| MongoDB Atlas | `codemetrics` (cloud) | Base de datos remota configurada en `.env` |
 
 ## 2) Cargar datos de demostración (seed)
 

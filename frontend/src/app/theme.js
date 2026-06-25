@@ -16,19 +16,19 @@ export const cartonTheme = {
     // Neobrutalism / Carton traits
     borderRadius: 8,
     lineWidth: 2,
-    colorBorder: 'rgba(58, 226, 244, 0.34)',
-    colorBgBase: '#14171d',
-    colorBgContainer: '#21262f',
-    colorBgElevated: '#262d37',
+    colorBorder: 'rgba(58, 226, 244, 0.42)',
+    colorBgBase: '#12151b',
+    colorBgContainer: '#1b2027',
+    colorBgElevated: '#222933',
     
-    boxShadow: '0 16px 34px rgba(4, 10, 18, 0.4)',
-    boxShadowSecondary: '4px 4px 0px rgba(36, 201, 218, 0.22)',
+    boxShadow: '0 18px 38px rgba(4, 10, 18, 0.48)',
+    boxShadowSecondary: '4px 4px 0px rgba(36, 201, 218, 0.26)',
   },
   components: {
     Card: {
-      colorBorderSecondary: 'rgba(58, 226, 244, 0.58)',
+      colorBorderSecondary: 'rgba(58, 226, 244, 0.68)',
       lineWidth: 2,
-      headerBg: '#262d37'
+      headerBg: '#20262f'
     },
     Button: {
       lineWidth: 2,
@@ -53,7 +53,7 @@ export const cartonTheme = {
       defaultColor: '#dbe3ed'
     },
     Drawer: {
-      colorBgElevated: '#1b2027',
+      colorBgElevated: '#181d24',
     }
   }
 };

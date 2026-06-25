@@ -1,10 +1,10 @@
 :root {
-  --cm-bg: #14171d;
-  --cm-bg-elevated: #1b2027;
-  --cm-bg-surface: #21262f;
-  --cm-bg-surface-strong: #262d37;
-  --cm-border: rgba(58, 226, 244, 0.34);
-  --cm-border-strong: rgba(58, 226, 244, 0.58);
+  --cm-bg: #12151b;
+  --cm-bg-elevated: #181d24;
+  --cm-bg-surface: #1b2027;
+  --cm-bg-surface-strong: #222933;
+  --cm-border: rgba(58, 226, 244, 0.42);
+  --cm-border-strong: rgba(58, 226, 244, 0.68);
   --cm-accent: #24c9da;
   --cm-accent-soft: rgba(36, 201, 218, 0.16);
   --cm-accent-strong: #72ecf5;
@@ -27,6 +27,16 @@ body,
 body {
   background: var(--cm-bg);
   color: var(--cm-text);
+}
+
+.ant-card {
+  box-shadow: 0 18px 38px rgba(4, 10, 18, 0.48);
+}
+
+.ant-card .ant-card-head {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0))
+    , var(--cm-bg-surface-strong);
+  border-bottom: 1px solid var(--cm-border-strong);
 }
 
 ::selection {

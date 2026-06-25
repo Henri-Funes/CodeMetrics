@@ -19,6 +19,7 @@ import { TrophyOutlined, WalletOutlined } from '@ant-design/icons';
 import { useAuth } from '../../../app/AuthContext';
 import { useEmployeeDashboardController } from '../controllers/useEmployeeDashboardController.js';
 import { formatPoints, formatScore } from '../../../shared/utils/formatters.js';
+import './EmployeeDashboard.css';
 
 const { Paragraph, Text, Title } = Typography;
 
@@ -55,7 +56,7 @@ export function EmployeeDashboard() {
   }
 
   return (
-    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
+    <Space className="employee-dashboard" orientation="vertical" size={12} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -81,8 +82,8 @@ export function EmployeeDashboard() {
         />
       ))}
 
-      <Card>
-        <Space orientation="vertical" size={4}>
+      <Card className="employee-dashboard__card employee-dashboard__card--compact">
+        <Space orientation="vertical" size={2}>
           <Text type="secondary">Empleado activo</Text>
           <Title level={4} style={{ margin: 0 }}>
             {currentUser.name}
@@ -93,10 +94,11 @@ export function EmployeeDashboard() {
         </Space>
       </Card>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={16}>
+      <Row gutter={[12, 12]} align="stretch">
+        <Col xs={24} lg={16} className="employee-dashboard__col">
           <Card
-            title="Desempeno del ultimo periodo"
+            className="employee-dashboard__card"
+            title="Desempeño del ultimo periodo"
             extra={
               latestReview?.periodId?.label ? (
                 <Tag color="cyan">{latestReview.periodId.label}</Tag>
@@ -106,7 +108,7 @@ export function EmployeeDashboard() {
             }
           >
             {latestReview ? (
-              <Space orientation="vertical" size={12} style={{ width: '100%' }}>
+              <Space orientation="vertical" size={10} style={{ width: '100%' }}>
                 <Progress
                   type="dashboard"
                   percent={Math.round(Number(latestReview.finalScore))}
@@ -126,9 +128,9 @@ export function EmployeeDashboard() {
           </Card>
         </Col>
 
-        <Col xs={24} lg={8}>
-          <Card title="Merit Wallet">
-            <Space orientation="vertical" size={16} style={{ width: '100%' }}>
+        <Col xs={24} lg={8} className="employee-dashboard__col">
+          <Card className="employee-dashboard__card" title="Billetera de puntos">
+            <Space orientation="vertical" size={12} style={{ width: '100%' }}>
               <Statistic
                 title="Saldo actual"
                 value={wallet?.balance ?? 0}
@@ -146,13 +148,13 @@ export function EmployeeDashboard() {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={14}>
-          <Card title="KPIs">
+      <Row gutter={[12, 12]} align="stretch">
+        <Col xs={24} lg={14} className="employee-dashboard__col">
+          <Card className="employee-dashboard__card employee-dashboard__card--kpis" title="KPIs">
             {kpiCards.length > 0 ? (
-              <Space orientation="vertical" size={10} style={{ width: '100%' }}>
+              <Space className="employee-dashboard__kpis-list" orientation="vertical" size={8} style={{ width: '100%' }}>
                 {kpiCards.map((kpi) => (
-                  <div key={kpi.key}>
+                  <div key={kpi.key} className="employee-dashboard__kpi">
                     <Space style={{ justifyContent: 'space-between', width: '100%' }}>
                       <Text>{kpi.label}</Text>
                       <Text strong>{formatScore(kpi.value)}</Text>
@@ -167,17 +169,17 @@ export function EmployeeDashboard() {
           </Card>
         </Col>
 
-        <Col xs={24} lg={10}>
-          <Card title="Historial de desempeno">
+        <Col xs={24} lg={10} className="employee-dashboard__col">
+          <Card className="employee-dashboard__card" title="Historial de desempeño">
             {performanceTimeline.length ? (
               <Timeline
                 items={performanceTimeline.map((entry) => ({
                   color: entry.color,
                   children: (
-                    <Space orientation="vertical" size={0}>
+                    <Space orientation="vertical" size={0} className="employee-dashboard__timeline-item">
                       <Text strong>{entry.period}</Text>
                       <Text>
-                        Score: <Text strong>{formatScore(entry.score)}</Text> / 100
+                        Puntaje: <Text strong>{formatScore(entry.score)}</Text> / 100
                       </Text>
                       <Text type="secondary">Puntos: {formatPoints(entry.pointsAwarded)}</Text>
                     </Space>

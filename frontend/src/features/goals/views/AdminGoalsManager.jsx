@@ -20,7 +20,13 @@ import {
   Tooltip,
   Typography
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  FlagOutlined,
+  CheckCircleOutlined,
+  SyncOutlined,
+  BarChartOutlined
+} from '@ant-design/icons';
 
 import { useAuth } from '../../../app/AuthContext';
 import { useGoalInspector } from '../../../shared/context/GoalInspectorContext.jsx';
@@ -32,6 +38,7 @@ import {
   goalStatusOptions,
   goalUnitOptions
 } from '../models/goals.model.js';
+import './AdminGoalsManager.css';
 
 const { Text } = Typography;
 
@@ -49,6 +56,10 @@ export function AdminGoalsManager() {
   const [goalForm] = Form.useForm();
   const [openGoalModal, setOpenGoalModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
+  const [tablePagination, setTablePagination] = useState({
+    current: 1,
+    pageSize: 10
+  });
   const {
     loading,
     saving,
@@ -82,6 +93,37 @@ export function AdminGoalsManager() {
       })),
     [periods]
   );
+  const summaryCards = [
+    {
+      key: 'active-goals',
+      title: 'Activos',
+      value: summary.total,
+      icon: <FlagOutlined />,
+      accentClassName: 'admin-goals__summary-card--active'
+    },
+    {
+      key: 'completed-goals',
+      title: 'Completados',
+      value: summary.completed,
+      icon: <CheckCircleOutlined />,
+      accentClassName: 'admin-goals__summary-card--completed'
+    },
+    {
+      key: 'in-progress-goals',
+      title: 'En progreso',
+      value: summary.inProgress,
+      icon: <SyncOutlined />,
+      accentClassName: 'admin-goals__summary-card--progress'
+    },
+    {
+      key: 'average-progress',
+      title: 'Avance prom.',
+      value: summary.averageProgress,
+      suffix: '%',
+      icon: <BarChartOutlined />,
+      accentClassName: 'admin-goals__summary-card--average'
+    }
+  ];
 
   const openCreateModal = () => {
     setEditingGoal(null);
@@ -128,7 +170,7 @@ export function AdminGoalsManager() {
   }
 
   return (
-    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
+    <Space className="admin-goals" orientation="vertical" size={16} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -144,26 +186,14 @@ export function AdminGoalsManager() {
       {successMessage ? <Alert showIcon type="success" message={successMessage} /> : null}
 
       <Row gutter={[12, 12]}>
-        <Col xs={12} sm={6}>
-          <Card size="small" styles={{ body: { padding: '12px 16px' } }}>
-            <Statistic title="Activos" value={summary.total} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small" styles={{ body: { padding: '12px 16px' } }}>
-            <Statistic title="Completados" value={summary.completed} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small" styles={{ body: { padding: '12px 16px' } }}>
-            <Statistic title="En progreso" value={summary.inProgress} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small" styles={{ body: { padding: '12px 16px' } }}>
-            <Statistic title="Avance prom." value={summary.averageProgress} suffix="%" />
-          </Card>
-        </Col>
+        {summaryCards.map((card) => (
+          <Col xs={12} sm={6} key={card.key}>
+            <Card size="small" className={`admin-goals__summary-card ${card.accentClassName}`}>
+              <div className="admin-goals__summary-icon">{card.icon}</div>
+              <Statistic title={card.title} value={card.value} suffix={card.suffix} />
+            </Card>
+          </Col>
+        ))}
       </Row>
 
       <Card
@@ -228,7 +258,19 @@ export function AdminGoalsManager() {
           size="small"
           rowKey="_id"
           dataSource={filteredGoals}
-          pagination={{ pageSize: 10, size: 'small', showSizeChanger: false }}
+          pagination={{
+            ...tablePagination,
+            size: 'small',
+            showSizeChanger: false,
+            total: filteredGoals.length
+          }}
+          onChange={(pagination) => {
+            setTablePagination((current) => ({
+              ...current,
+              current: pagination.current ?? 1,
+              pageSize: pagination.pageSize ?? current.pageSize
+            }));
+          }}
           tableLayout="fixed"
           scroll={{ x: 980 }}
           columns={[

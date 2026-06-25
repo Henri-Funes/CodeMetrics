@@ -6,6 +6,7 @@ import {
   activateReward,
   createReward,
   deactivateReward,
+  deleteReward as deleteRewardApi,
   listRewards,
   updateReward
 } from '../../../shared/api/rewards.api.js';
@@ -88,6 +89,22 @@ export function useAdminRewardsController() {
     }
   };
 
+  const deleteReward = async (rewardId) => {
+    setSaving(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      await deleteRewardApi(rewardId);
+      setSuccessMessage('Recompensa eliminada correctamente.');
+      await reload();
+    } catch (requestError) {
+      setError(requestError.message ?? 'No fue posible eliminar la recompensa.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return {
     loading,
     saving,
@@ -99,6 +116,7 @@ export function useAdminRewardsController() {
     setFilters,
     saveReward,
     toggleRewardStatus,
+    deleteReward,
     reload
   };
 }

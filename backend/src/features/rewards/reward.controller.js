@@ -1,5 +1,6 @@
 import {
   createReward,
+  deleteReward,
   getRewardById,
   listRewardCatalog,
   listRewards,
@@ -64,6 +65,15 @@ export async function activateRewardHandler(req, res, next) {
 export async function deactivateRewardHandler(req, res, next) {
   try {
     const reward = await setRewardActiveStatus(req.params.rewardId, false);
+    res.json({ data: reward });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteRewardHandler(req, res, next) {
+  try {
+    const reward = await deleteReward(req.params.rewardId);
     res.json({ data: reward });
   } catch (error) {
     next(error);

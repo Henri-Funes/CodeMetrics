@@ -1,6 +1,7 @@
 const SESSION_USER_KEY = 'codemetrics.session.userId';
 const SESSION_INSPECTOR_KEY = 'codemetrics.session.inspectorPanels';
 const SESSION_EVALUATION_FILTERS_KEY = 'codemetrics.session.evaluationFilters';
+const SESSION_REDEMPTION_NOTIFICATIONS_KEY = 'codemetrics.session.redemptionNotifications';
 
 function readJson(key, fallback = null) {
   if (typeof window === 'undefined') return fallback;
@@ -113,4 +114,42 @@ export function writeGoalsFilters(filters) {
     ...DEFAULT_GOALS_FILTERS,
     ...filters
   });
+}
+
+function readRedemptionNotificationState() {
+  const saved = readJson(SESSION_REDEMPTION_NOTIFICATIONS_KEY, null);
+  if (!saved || typeof saved !== 'object') return {};
+
+  return saved;
+}
+
+function writeRedemptionNotificationState(state) {
+  if (!state || Object.keys(state).length === 0) {
+    removeKey(SESSION_REDEMPTION_NOTIFICATIONS_KEY);
+    return;
+  }
+
+  writeJson(SESSION_REDEMPTION_NOTIFICATIONS_KEY, state);
+}
+
+export function hasSeenRedemptionNotification(employeeId, redemptionId, status) {
+  if (!employeeId || !redemptionId || !status) {
+    return false;
+  }
+
+  const state = readRedemptionNotificationState();
+  return state?.[employeeId]?.[redemptionId] === status;
+}
+
+export function markRedemptionNotificationSeen(employeeId, redemptionId, status) {
+  if (!employeeId || !redemptionId || !status) {
+    return;
+  }
+
+  const state = readRedemptionNotificationState();
+  state[employeeId] = {
+    ...(state[employeeId] ?? {}),
+    [redemptionId]: status
+  };
+  writeRedemptionNotificationState(state);
 }

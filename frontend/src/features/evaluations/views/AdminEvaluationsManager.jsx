@@ -21,7 +21,15 @@ import {
   Tag,
   Typography
 } from 'antd';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  MinusCircleOutlined,
+  PlusOutlined,
+  ProfileOutlined,
+  FormOutlined,
+  ClockCircleOutlined,
+  AuditOutlined,
+  CheckCircleOutlined
+} from '@ant-design/icons';
 
 import { useAuth } from '../../../app/AuthContext';
 import { formatDate, formatPoints, formatScore } from '../../../shared/utils/formatters.js';
@@ -34,6 +42,7 @@ import {
   evaluationStatusOptions,
   monthOptions
 } from '../models/evaluations.model.js';
+import './AdminEvaluationsManager.css';
 
 const { Paragraph, Text } = Typography;
 
@@ -84,6 +93,43 @@ export function AdminEvaluationsManager() {
     () => periods.map((period) => ({ value: period._id, label: period.label })),
     [periods]
   );
+  const summaryCards = [
+    {
+      key: 'reviews-total',
+      title: 'Total',
+      value: summary.total,
+      icon: <ProfileOutlined />,
+      accentClassName: 'admin-evaluations__summary-card--total'
+    },
+    {
+      key: 'reviews-drafts',
+      title: 'Borradores',
+      value: summary.drafts,
+      icon: <FormOutlined />,
+      accentClassName: 'admin-evaluations__summary-card--drafts'
+    },
+    {
+      key: 'reviews-pending',
+      title: 'Pendientes supervisor',
+      value: summary.pendingSupervisor,
+      icon: <ClockCircleOutlined />,
+      accentClassName: 'admin-evaluations__summary-card--pending'
+    },
+    {
+      key: 'reviews-reviewed',
+      title: 'Revisadas',
+      value: summary.reviewed,
+      icon: <AuditOutlined />,
+      accentClassName: 'admin-evaluations__summary-card--reviewed'
+    },
+    {
+      key: 'reviews-finalized',
+      title: 'Finalizadas',
+      value: summary.finalized,
+      icon: <CheckCircleOutlined />,
+      accentClassName: 'admin-evaluations__summary-card--finalized'
+    }
+  ];
 
   const previewScore = useMemo(() => calculateEvaluationPreview(previewKpis), [previewKpis]);
 
@@ -137,7 +183,7 @@ export function AdminEvaluationsManager() {
   }
 
   return (
-    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
+    <Space className="admin-evaluations" orientation="vertical" size={16} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -153,31 +199,14 @@ export function AdminEvaluationsManager() {
       {successMessage ? <Alert showIcon type="success" message={successMessage} /> : null}
 
       <Row gutter={[16, 16]}>
-        <Col xs={12} sm={8} lg={4}>
-          <Card>
-            <Statistic title="Total" value={summary.total} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={8} lg={4}>
-          <Card>
-            <Statistic title="Borradores" value={summary.drafts} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={8} lg={4}>
-          <Card>
-            <Statistic title="Pendientes supervisor" value={summary.pendingSupervisor} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={8} lg={4}>
-          <Card>
-            <Statistic title="Revisadas" value={summary.reviewed} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={8} lg={4}>
-          <Card>
-            <Statistic title="Finalizadas" value={summary.finalized} />
-          </Card>
-        </Col>
+        {summaryCards.map((card) => (
+          <Col xs={12} sm={8} lg={4} key={card.key}>
+            <Card className={`admin-evaluations__summary-card ${card.accentClassName}`}>
+              <div className="admin-evaluations__summary-icon">{card.icon}</div>
+              <Statistic title={card.title} value={card.value} />
+            </Card>
+          </Col>
+        ))}
       </Row>
 
       {openPeriods.length > 0 ? (
@@ -192,7 +221,7 @@ export function AdminEvaluationsManager() {
         </Card>
       ) : null}
 
-      <Card title="Evaluaciones de desempeno">
+      <Card title="Evaluaciones de desempeño">
         <Space wrap style={{ marginBottom: 16 }}>
           <Button type="primary" onClick={openAssignModal}>
             Asignar autoevaluaciones
@@ -271,7 +300,7 @@ export function AdminEvaluationsManager() {
               )
             },
             {
-              title: 'Score',
+              title: 'puntaje',
               dataIndex: 'finalScore',
               key: 'finalScore',
               width: 100,

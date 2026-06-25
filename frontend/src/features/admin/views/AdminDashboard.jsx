@@ -1,9 +1,16 @@
 import React from 'react';
 import { Alert, Button, Card, Col, Row, Skeleton, Space, Statistic, Table, Tag, Typography } from 'antd';
+import {
+  TeamOutlined,
+  UserSwitchOutlined,
+  GiftOutlined,
+  BarChartOutlined
+} from '@ant-design/icons';
 
 import { useAdminDashboardController } from '../controllers/useAdminDashboardController.js';
 import { toPeriodRows, toRedemptionSummaryRows, toTopPerformerRows } from '../models/admin.model.js';
 import { formatDate, formatPoints, formatScore } from '../../../shared/utils/formatters.js';
+import './AdminDashboard.css';
 
 const { Text } = Typography;
 
@@ -12,6 +19,13 @@ const statusColor = {
   approved: 'blue',
   rejected: 'volcano',
   delivered: 'green'
+};
+
+const redemptionStatusLabel = {
+  pending: 'Pendiente',
+  approved: 'Aprobado',
+  rejected: 'Rechazado',
+  delivered: 'Entregado'
 };
 
 const periodStatusColor = {
@@ -37,9 +51,40 @@ export function AdminDashboard() {
   const topRows = toTopPerformerRows(performanceSummary?.topPerformers ?? []);
   const redemptionRows = toRedemptionSummaryRows(redemptionSummary ?? {});
   const periodRows = toPeriodRows(periods ?? []);
+  const summaryCards = [
+    {
+      key: 'employees-total',
+      title: 'Empleados totales',
+      value: employeeSummary?.total ?? 0,
+      icon: <TeamOutlined />,
+      accentClassName: 'admin-dashboard__summary-card--employees'
+    },
+    {
+      key: 'employees-active',
+      title: 'Empleados activos',
+      value: employeeSummary?.active ?? 0,
+      icon: <UserSwitchOutlined />,
+      accentClassName: 'admin-dashboard__summary-card--active'
+    },
+    {
+      key: 'points-issued',
+      title: 'Puntos emitidos',
+      value: performanceSummary?.summary?.totalPointsAwarded ?? 0,
+      formatter: (value) => formatPoints(value),
+      icon: <GiftOutlined />,
+      accentClassName: 'admin-dashboard__summary-card--points'
+    },
+    {
+      key: 'score-average',
+      title: 'Promedio de puntos',
+      value: formatScore(performanceSummary?.summary?.averageScore ?? 0),
+      icon: <BarChartOutlined />,
+      accentClassName: 'admin-dashboard__summary-card--score'
+    }
+  ];
 
   return (
-    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
+    <Space className="admin-dashboard" orientation="vertical" size={16} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -54,36 +99,21 @@ export function AdminDashboard() {
       ) : null}
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} md={12} xl={6}>
-          <Card>
-            <Statistic title="Empleados totales" value={employeeSummary?.total ?? 0} />
-          </Card>
-        </Col>
-        <Col xs={24} md={12} xl={6}>
-          <Card>
-            <Statistic title="Empleados activos" value={employeeSummary?.active ?? 0} />
-          </Card>
-        </Col>
-        <Col xs={24} md={12} xl={6}>
-          <Card>
-            <Statistic
-              title="Puntos emitidos"
-              value={performanceSummary?.summary?.totalPointsAwarded ?? 0}
-              formatter={(value) => formatPoints(value)}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} md={12} xl={6}>
-          <Card>
-            <Statistic
-              title="Promedio de score"
-              value={formatScore(performanceSummary?.summary?.averageScore ?? 0)}
-            />
-          </Card>
-        </Col>
+        {summaryCards.map((card) => (
+          <Col xs={24} md={12} xl={6} key={card.key}>
+            <Card className={`admin-dashboard__summary-card ${card.accentClassName}`}>
+              <div className="admin-dashboard__summary-icon">{card.icon}</div>
+              <Statistic
+                title={card.title}
+                value={card.value}
+                formatter={card.formatter}
+              />
+            </Card>
+          </Col>
+        ))}
       </Row>
 
-      <Card title="Estado de periodos de desempeno">
+      <Card title="Estado de periodos de desempeño">
         <Table
           size="small"
           rowKey="key"
@@ -124,7 +154,7 @@ export function AdminDashboard() {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} xl={14}>
-          <Card title="Top performers">
+          <Card title="Top de Empleados">
             <Table
               size="small"
               rowKey="key"
@@ -148,7 +178,7 @@ export function AdminDashboard() {
                   key: 'period'
                 },
                 {
-                  title: 'Score',
+                  title: 'Puntaje',
                   dataIndex: 'score',
                   key: 'score',
                   render: (value) => <Text strong>{formatScore(value)}</Text>
@@ -177,7 +207,11 @@ export function AdminDashboard() {
                   title: 'Estado',
                   dataIndex: 'status',
                   key: 'status',
-                  render: (value) => <Tag color={statusColor[value] ?? 'default'}>{value}</Tag>
+                  render: (value) => (
+                    <Tag color={statusColor[value] ?? 'default'}>
+                      {redemptionStatusLabel[value] ?? value}
+                    </Tag>
+                  )
                 },
                 {
                   title: 'Tickets',

@@ -75,3 +75,15 @@ export async function deactivateReward(rewardId) {
 
   return response.data ?? null;
 }
+
+export async function deleteReward(rewardId) {
+  const response = await requestApi(
+    {
+      method: 'delete',
+      url: `/api/rewards/${rewardId}`
+    },
+    'No fue posible eliminar la recompensa.'
+  );
+
+  return response.data ?? null;
+}

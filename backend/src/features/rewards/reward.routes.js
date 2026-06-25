@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
   activateRewardHandler,
   createRewardHandler,
+  deleteRewardHandler,
   deactivateRewardHandler,
   getRewardHandler,
   listRewardCatalogHandler,
@@ -19,3 +20,4 @@ rewardRoutes.post('/', createRewardHandler);
 rewardRoutes.patch('/:rewardId', updateRewardHandler);
 rewardRoutes.patch('/:rewardId/activate', activateRewardHandler);
 rewardRoutes.patch('/:rewardId/deactivate', deactivateRewardHandler);
+rewardRoutes.delete('/:rewardId', deleteRewardHandler);

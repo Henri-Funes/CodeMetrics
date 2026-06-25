@@ -1,0 +1,46 @@
+.employee-dashboard .ant-card {
+  height: 100%;
+}
+
+.employee-dashboard__col {
+  display: flex;
+}
+
+.employee-dashboard__card {
+  width: 100%;
+}
+
+.employee-dashboard__card--compact .ant-card-body {
+  padding: 14px 16px;
+}
+
+.employee-dashboard__card .ant-card-head {
+  min-height: 44px;
+  padding: 0 16px;
+}
+
+.employee-dashboard__card .ant-card-head-title,
+.employee-dashboard__card .ant-card-extra {
+  padding: 10px 0;
+}
+
+.employee-dashboard__card .ant-card-body {
+  padding: 16px;
+}
+
+.employee-dashboard__card--kpis .ant-card-body {
+  display: flex;
+  align-items: center;
+}
+
+.employee-dashboard__kpis-list {
+  justify-content: center;
+}
+
+.employee-dashboard__kpi + .employee-dashboard__kpi {
+  margin-top: 2px;
+}
+
+.employee-dashboard__timeline-item {
+  line-height: 1.2;
+}

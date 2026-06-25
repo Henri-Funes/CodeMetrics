@@ -8,6 +8,10 @@ const { Text } = Typography;
 export const RoleSwitcher = () => {
   const { currentUser, switchRole, selectUser, users, loadingUsers } = useAuth();
   const navigate = useNavigate();
+  const roleLabel = {
+    employee: 'Empleado',
+    admin: 'Administrador'
+  };
 
   const handleChange = (value) => {
     switchRole(value);
@@ -32,12 +36,12 @@ export const RoleSwitcher = () => {
 
   const roleOptions = [
     { value: 'employee', label: 'Empleado' },
-    { value: 'admin', label: 'Admin' }
+    { value: 'admin', label: 'Administrador' }
   ];
 
   const userOptions = users.map((user) => ({
     value: user._id,
-    label: `${user.name} (${user.role})`
+    label: `${user.name} (${roleLabel[user.role] ?? user.role})`
   }));
 
   return (

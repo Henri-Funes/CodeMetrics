@@ -17,11 +17,18 @@ import {
   Tag,
   Typography
 } from 'antd';
+import {
+  FlagOutlined,
+  CheckCircleOutlined,
+  WarningOutlined,
+  LineChartOutlined
+} from '@ant-design/icons';
 
 import { useAuth } from '../../../app/AuthContext';
 import { formatDate } from '../../../shared/utils/formatters.js';
 import { useEmployeeGoalsController } from '../controllers/useEmployeeGoalsController.js';
 import { goalStatusColor } from '../models/goals.model.js';
+import './EmployeeGoals.css';
 
 const { Paragraph, Text, Title } = Typography;
 
@@ -45,6 +52,37 @@ export function EmployeeGoals() {
   const [selectedGoal, setSelectedGoal] = useState(null);
   const { loading, saving, error, successMessage, goals, summary, submitProgress, reload } =
     useEmployeeGoalsController(currentUser);
+  const summaryCards = [
+    {
+      key: 'goals-active',
+      title: 'Objetivos activos',
+      value: summary.total,
+      icon: <FlagOutlined />,
+      accentClassName: 'employee-goals__summary-card--active'
+    },
+    {
+      key: 'goals-completed',
+      title: 'Completados',
+      value: summary.completed,
+      icon: <CheckCircleOutlined />,
+      accentClassName: 'employee-goals__summary-card--completed'
+    },
+    {
+      key: 'goals-risk',
+      title: 'En riesgo',
+      value: summary.atRisk,
+      icon: <WarningOutlined />,
+      accentClassName: 'employee-goals__summary-card--risk'
+    },
+    {
+      key: 'goals-average',
+      title: 'Progreso promedio',
+      value: summary.averageProgress,
+      suffix: '%',
+      icon: <LineChartOutlined />,
+      accentClassName: 'employee-goals__summary-card--average'
+    }
+  ];
 
   if (currentUser.role !== 'employee') {
     return (
@@ -75,7 +113,7 @@ export function EmployeeGoals() {
   }
 
   return (
-    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
+    <Space className="employee-goals" orientation="vertical" size={12} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -102,71 +140,65 @@ export function EmployeeGoals() {
         </Space>
       </Card>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={6}>
-          <Card>
-            <Statistic title="Objetivos activos" value={summary.total} />
-          </Card>
-        </Col>
-        <Col xs={24} md={6}>
-          <Card>
-            <Statistic title="Completados" value={summary.completed} />
-          </Card>
-        </Col>
-        <Col xs={24} md={6}>
-          <Card>
-            <Statistic title="En riesgo" value={summary.atRisk} />
-          </Card>
-        </Col>
-        <Col xs={24} md={6}>
-          <Card>
-            <Statistic title="Progreso promedio" value={summary.averageProgress} suffix="%" />
-          </Card>
-        </Col>
+      <Row gutter={[12, 12]} align="stretch">
+        {summaryCards.map((card) => (
+          <Col xs={24} md={6} key={card.key}>
+            <Card className={`employee-goals__summary-card ${card.accentClassName}`}>
+              <div className="employee-goals__summary-icon">{card.icon}</div>
+              <Statistic title={card.title} value={card.value} suffix={card.suffix} />
+            </Card>
+          </Col>
+        ))}
       </Row>
 
       {goals.length ? (
-        <Row gutter={[16, 16]}>
+        <Row gutter={[12, 12]} align="stretch">
           {goals.map((goal) => (
-            <Col xs={24} lg={12} key={goal._id}>
+            <Col xs={24} lg={12} key={goal._id} className="employee-goals__col">
               <Card
+                className="employee-goals__card"
                 title={goal.title}
                 extra={<Tag color={goalStatusColor[goal.status]}>{goal.statusLabel}</Tag>}
               >
-                <Space orientation="vertical" size={12} style={{ width: '100%' }}>
-                  <Space wrap>
-                    <Tag>{goal.categoryLabel}</Tag>
-                    <Tag color="cyan">{goal.periodLabel}</Tag>
-                    <Tag color="blue">Peso {goal.weight}%</Tag>
-                  </Space>
-                  <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-                    {goal.description}
-                  </Paragraph>
-                  <Progress
-                    percent={goal.progress}
-                    strokeColor={progressColorByStatus[goal.status]}
-                    status={goal.status === 'cancelled' ? 'exception' : undefined}
-                  />
-                  <Space style={{ justifyContent: 'space-between', width: '100%' }} wrap>
-                    <Text>
-                      Avance: <Text strong>{goal.currentValue}</Text> / {goal.targetValue}{' '}
-                      {goal.unitLabel}
-                    </Text>
-                    <Text type="secondary">Vence: {formatDate(goal.dueDate)}</Text>
-                  </Space>
-                  {goal.evidenceNote ? (
-                    <Paragraph style={{ marginBottom: 0 }}>
-                      Evidencia: <Text type="secondary">{goal.evidenceNote}</Text>
+                <div className="employee-goals__content">
+                  <Space orientation="vertical" size={10} style={{ width: '100%' }}>
+                    <Space wrap size={6}>
+                      <Tag>{goal.categoryLabel}</Tag>
+                      <Tag color="cyan">{goal.periodLabel}</Tag>
+                      <Tag color="blue">Peso {goal.weight}%</Tag>
+                    </Space>
+                    <Paragraph className="employee-goals__description" type="secondary">
+                      {goal.description}
                     </Paragraph>
-                  ) : null}
-                  <Button
-                    type="primary"
-                    disabled={goal.status === 'cancelled' || goal.status === 'completed'}
-                    onClick={() => openProgressModal(goal)}
-                  >
-                    Actualizar avance
-                  </Button>
-                </Space>
+                    <Progress
+                      percent={goal.progress}
+                      strokeColor={progressColorByStatus[goal.status]}
+                      status={goal.status === 'cancelled' ? 'exception' : undefined}
+                    />
+                    <Space className="employee-goals__meta" style={{ width: '100%' }} wrap>
+                      <Text>
+                        Avance: <Text strong>{goal.currentValue}</Text> / {goal.targetValue}{' '}
+                        {goal.unitLabel}
+                      </Text>
+                      <Text type="secondary">Vence: {formatDate(goal.dueDate)}</Text>
+                    </Space>
+                    {goal.evidenceNote ? (
+                      <Paragraph className="employee-goals__evidence">
+                        Evidencia: <Text type="secondary">{goal.evidenceNote}</Text>
+                      </Paragraph>
+                    ) : null}
+                  </Space>
+                  <div className="employee-goals__footer">
+                    <Button
+                      className="employee-goals__action"
+                      type="primary"
+                      disabled={goal.status === 'cancelled' || goal.status === 'completed'}
+                      onClick={() => openProgressModal(goal)}
+                    >
+                      Actualizar avance
+                    </Button>
+                  </div>
+                </div>
               </Card>
             </Col>
           ))}

@@ -1,8 +1,8 @@
 import { healthRoutes } from '../features/health/health.routes.js';
 import { employeeRoutes } from '../features/employees/employee.routes.js';
 import { performanceRoutes } from '../features/performance/performance.routes.js';
-import { redemptionRoutes } from '../features/redemptions/redemption.routes.js';
 import { rewardRoutes } from '../features/rewards/reward.routes.js';
+import { redemptionRoutes } from '../features/redemptions/redemption.routes.js';
 import { walletRoutes } from '../features/wallet/wallet.routes.js';
 
 export function registerApiRoutes(app) {

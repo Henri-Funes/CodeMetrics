@@ -92,3 +92,28 @@ export function buildEmployeeDashboardNotifications(reviews = []) {
 
   return notifications;
 }
+
+export function buildRedemptionNotification(redemption) {
+  const rewardName = redemption?.rewardSnapshot?.name ?? redemption?.rewardId?.name ?? 'Recompensa';
+  const pointsSpent = Number(redemption?.pointsSpent ?? redemption?.rewardSnapshot?.costInPoints ?? 0);
+
+  if (redemption?.status === 'approved') {
+    return {
+      key: `redemption-approved-${redemption._id}`,
+      type: 'success',
+      message: 'Canje aprobado',
+      description: `Tu canje de "${rewardName}" por ${pointsSpent} puntos fue aprobado. Ya puedes revisar el seguimiento en tu historial.`
+    };
+  }
+
+  if (redemption?.status === 'rejected') {
+    return {
+      key: `redemption-rejected-${redemption._id}`,
+      type: 'error',
+      message: 'Canje rechazado',
+      description: `Tu canje de "${rewardName}" por ${pointsSpent} puntos fue rechazado. Tus puntos fueron reembolsados.`
+    };
+  }
+
+  return null;
+}

@@ -1,9 +1,16 @@
 import React from 'react';
 import { Alert, Button, Card, Empty, Skeleton, Space, Statistic, Table, Tag, Typography } from 'antd';
+import {
+  WalletOutlined,
+  TrophyOutlined,
+  ArrowDownOutlined,
+  SwapOutlined
+} from '@ant-design/icons';
 
 import { useAuth } from '../../../app/AuthContext';
 import { useWalletHistoryController } from '../controllers/useWalletHistoryController.js';
 import { formatDate, formatPoints } from '../../../shared/utils/formatters.js';
+import './WalletHistory.css';
 
 const { Text } = Typography;
 
@@ -21,6 +28,39 @@ function transactionColor(points) {
 export function WalletHistory() {
   const { currentUser } = useAuth();
   const { loading, error, wallet, transactions, reload } = useWalletHistoryController(currentUser);
+  const summaryCards = [
+    {
+      key: 'wallet-balance',
+      title: 'Saldo actual',
+      value: wallet?.balance ?? 0,
+      formatter: (value) => formatPoints(value),
+      icon: <WalletOutlined />,
+      accentClassName: 'wallet-history__summary-card--balance'
+    },
+    {
+      key: 'wallet-earned',
+      title: 'Puntos ganados',
+      value: wallet?.summary?.earned ?? 0,
+      formatter: (value) => formatPoints(value),
+      icon: <TrophyOutlined />,
+      accentClassName: 'wallet-history__summary-card--earned'
+    },
+    {
+      key: 'wallet-spent',
+      title: 'Puntos gastados',
+      value: wallet?.summary?.spent ?? 0,
+      formatter: (value) => formatPoints(value),
+      icon: <ArrowDownOutlined />,
+      accentClassName: 'wallet-history__summary-card--spent'
+    },
+    {
+      key: 'wallet-transactions',
+      title: 'Transacciones',
+      value: wallet?.summary?.transactions ?? 0,
+      icon: <SwapOutlined />,
+      accentClassName: 'wallet-history__summary-card--transactions'
+    }
+  ];
 
   if (currentUser.role !== 'employee') {
     return (
@@ -72,7 +112,7 @@ export function WalletHistory() {
   ];
 
   return (
-    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
+    <Space className="wallet-history" orientation="vertical" size={16} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -87,20 +127,18 @@ export function WalletHistory() {
       ) : null}
 
       <Card title="Resumen de billetera">
-        <Space size={24} wrap>
-          <Statistic title="Saldo actual" value={wallet?.balance ?? 0} formatter={(value) => formatPoints(value)} />
-          <Statistic
-            title="Puntos ganados"
-            value={wallet?.summary?.earned ?? 0}
-            formatter={(value) => formatPoints(value)}
-          />
-          <Statistic
-            title="Puntos gastados"
-            value={wallet?.summary?.spent ?? 0}
-            formatter={(value) => formatPoints(value)}
-          />
-          <Statistic title="Transacciones" value={wallet?.summary?.transactions ?? 0} />
-        </Space>
+        <div className="wallet-history__summary-grid">
+          {summaryCards.map((card) => (
+            <div key={card.key} className={`wallet-history__summary-card ${card.accentClassName}`}>
+              <div className="wallet-history__summary-icon">{card.icon}</div>
+              <Statistic
+                title={card.title}
+                value={card.value}
+                formatter={card.formatter}
+              />
+            </div>
+          ))}
+        </div>
       </Card>
 
       <Card title="Historial de transacciones">

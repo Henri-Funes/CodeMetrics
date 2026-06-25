@@ -26,6 +26,19 @@ export async function listRedemptions(params = {}) {
   return result.data ?? [];
 }
 
+export async function listEmployeeRedemptions(employeeId, params = {}) {
+  const result = await requestApi(
+    {
+      method: 'get',
+      url: `/api/redemptions/employees/${employeeId}`,
+      params
+    },
+    'No fue posible cargar los canjes del empleado.'
+  );
+
+  return result.data ?? [];
+}
+
 export async function getRedemptionSummary() {
   const result = await requestApi(
     {

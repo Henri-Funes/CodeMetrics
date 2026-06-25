@@ -14,6 +14,13 @@ const statusColor = {
   delivered: 'green'
 };
 
+const statusLabel = {
+  pending: 'Pendiente',
+  approved: 'Aprobado',
+  rejected: 'Rechazado',
+  delivered: 'Entregado'
+};
+
 export function AdminRedemptionsManager() {
   const { currentUser } = useAuth();
   const {
@@ -87,7 +94,11 @@ export function AdminRedemptionsManager() {
               title: 'Estado',
               dataIndex: 'status',
               key: 'status',
-              render: (value) => <Tag color={statusColor[value] ?? 'default'}>{value}</Tag>
+              render: (value) => (
+                <Tag color={statusColor[value] ?? 'default'}>
+                  {statusLabel[value] ?? value}
+                </Tag>
+              )
             },
             {
               title: 'Solicitado',

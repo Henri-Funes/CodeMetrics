@@ -178,7 +178,7 @@ export function EmployeeSelfEvaluation() {
               percent={Math.round(selectedReview.finalScore)}
               format={(percent) => `${percent}/100`}
             />
-            <Statistic title="Score final" value={formatScore(selectedReview.finalScore)} />
+            <Statistic title="Puntaje final" value={formatScore(selectedReview.finalScore)} />
             <Statistic
               title="Puntos generados"
               value={selectedReview.pointsAwarded}

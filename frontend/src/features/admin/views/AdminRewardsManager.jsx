@@ -7,18 +7,20 @@ import {
   Input,
   InputNumber,
   Modal,
+  Popconfirm,
   Select,
   Skeleton,
   Space,
   Switch,
   Table,
   Tag
-} from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+} from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 
-import { useAdminRewardsController } from '../controllers/useAdminRewardsController.js';
-import { formatPoints } from '../../../shared/utils/formatters.js';
+import { useAdminRewardsController } from "../controllers/useAdminRewardsController.js";
+import { formatPoints } from "../../../shared/utils/formatters.js";
 
+// prettier-ignore
 const categoryOptions = [
   { label: 'Licencias', value: 'licenses' },
   { label: 'Capacitacion', value: 'training' },
@@ -27,9 +29,14 @@ const categoryOptions = [
   { label: 'Bienestar', value: 'wellness' }
 ];
 
+const categoryLabelByValue = Object.fromEntries(
+  categoryOptions.map((option) => [option.value, option.label])
+);
+
 export function AdminRewardsManager() {
   const [form] = Form.useForm();
   const [openModal, setOpenModal] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 8 });
   const [editingReward, setEditingReward] = useState(null);
   const {
     loading,
@@ -41,6 +48,7 @@ export function AdminRewardsManager() {
     setFilters,
     saveReward,
     toggleRewardStatus,
+    deleteReward,
     reload
   } = useAdminRewardsController();
 
@@ -76,6 +84,10 @@ export function AdminRewardsManager() {
     const values = await form.validateFields();
     await saveReward(values, editingReward?._id ?? null);
     setOpenModal(false);
+  };
+
+  const handleDelete = async (reward) => {
+    await deleteReward(reward._id);
   };
 
   if (loading) {
@@ -137,7 +149,8 @@ export function AdminRewardsManager() {
         <Table
           rowKey="_id"
           dataSource={sortedRewards}
-          pagination={{ pageSize: 8 }}
+          pagination={pagination}
+          onChange={(p) => setPagination(p)}
           columns={[
             {
               title: 'Nombre',
@@ -148,7 +161,7 @@ export function AdminRewardsManager() {
               title: 'Categoria',
               dataIndex: 'category',
               key: 'category',
-              render: (value) => <Tag>{value}</Tag>
+              render: (value) => <Tag>{categoryLabelByValue[value] ?? value}</Tag>
             },
             {
               title: 'Costo',
@@ -157,7 +170,7 @@ export function AdminRewardsManager() {
               render: (value) => formatPoints(value)
             },
             {
-              title: 'Stock',
+              title: 'Disponibilidad',
               dataIndex: 'stock',
               key: 'stock'
             },
@@ -179,9 +192,21 @@ export function AdminRewardsManager() {
               title: 'Acciones',
               key: 'actions',
               render: (_, reward) => (
-                <Button onClick={() => handleOpenEdit(reward)} disabled={saving}>
-                  Editar
-                </Button>
+                <Space>
+                  <Button onClick={() => handleOpenEdit(reward)} disabled={saving}>
+                    Editar
+                  </Button>
+                  <Popconfirm
+                    title="Borrar recompensa"
+                    description="¿Estás seguro de que quieres borrarla? Esta acción no se puede deshacer."
+                    onConfirm={() => handleDelete(reward)}
+                    okText="Sí, borrar"
+                    cancelText="Cancelar"
+                    placement="topRight"
+                  >
+                    <Button danger disabled={saving}>Borrar</Button>
+                  </Popconfirm>
+                </Space>
               )
             }
           ]}

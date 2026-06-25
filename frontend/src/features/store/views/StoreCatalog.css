@@ -1,0 +1,20 @@
+.store-catalog__balance-card .ant-card-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+}
+
+.store-catalog__balance-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  border: 1px solid var(--cm-border);
+  background: rgba(36, 201, 218, 0.1);
+  color: #72ecf5;
+}

@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import { RoleSwitcher } from './RoleSwitcher';
 import { MiniWalletWidget } from './MiniWalletWidget';
+import { RedemptionNotificationWatcher } from './RedemptionNotificationWatcher';
 import { GoalInspectorDock } from './GoalInspectorDock';
 import { useAuth } from '../../app/AuthContext';
 import './LayoutBase.css';
@@ -38,6 +39,7 @@ function AppHeader({ showEmployeeMenu = false, menuItems = [] }) {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const currentRoleLabel = currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
 
   return (
     <Header className="app-header">
@@ -50,7 +52,7 @@ function AppHeader({ showEmployeeMenu = false, menuItems = [] }) {
             <Title level={4} className="app-brand__title">
               CodeMetrics
             </Title>
-            <Text className="app-brand__subtitle">SGDLI Workforce Rewards</Text>
+            <Text className="app-brand__subtitle">SGDLI Recompensas y Desempeño</Text>
           </div>
         </div>
         {showEmployeeMenu ? (
@@ -66,9 +68,7 @@ function AppHeader({ showEmployeeMenu = false, menuItems = [] }) {
       </div>
 
       <Space size="middle" className="app-header__right">
-        <Tag color={currentUser.role === 'admin' ? 'gold' : 'cyan'}>
-          {currentUser.role === 'admin' ? 'Admin' : 'Employee'}
-        </Tag>
+        <Tag color={currentUser.role === 'admin' ? 'gold' : 'cyan'}>{currentRoleLabel}</Tag>
         {currentUser.role === 'employee' && <MiniWalletWidget />}
         <RoleSwitcher />
       </Space>
@@ -111,6 +111,7 @@ export const LayoutBase = () => {
 
   return (
     <Layout className="app-shell">
+      <RedemptionNotificationWatcher />
       <AppHeader showEmployeeMenu menuItems={employeeMenuItems} />
       <Content className="app-content">
         <Outlet />

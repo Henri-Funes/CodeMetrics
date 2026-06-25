@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 import { Reward } from './reward.model.js';
+import { Redemption } from '../redemptions/redemption.model.js';
 
 const editableFields = ['name', 'description', 'category', 'costInPoints', 'stock', 'isActive'];
 
@@ -104,4 +105,24 @@ export async function updateReward(rewardId, payload) {
 
 export async function setRewardActiveStatus(rewardId, isActive) {
   return updateReward(rewardId, { isActive });
+}
+
+export async function deleteReward(rewardId) {
+  ensureValidObjectId(rewardId, 'reward id');
+
+  const relatedRedemptions = await Redemption.countDocuments({ rewardId });
+  if (relatedRedemptions > 0) {
+    throw createHttpError(
+      'No se puede eliminar la recompensa porque ya tiene canjes asociados. Considera desactivarla en su lugar.',
+      409
+    );
+  }
+
+  const result = await Reward.findByIdAndDelete(rewardId);
+
+  if (!result) {
+    throw createHttpError('Reward not found.', 404);
+  }
+
+  return result;
 }

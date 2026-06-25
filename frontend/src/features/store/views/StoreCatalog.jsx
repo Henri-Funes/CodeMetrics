@@ -17,12 +17,13 @@ import {
   Tag,
   Typography
 } from 'antd';
-import { ShoppingCartOutlined } from '@ant-design/icons';
+import { ShoppingCartOutlined, WalletOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../../app/AuthContext';
 import { useStoreController } from '../controllers/useStoreController.js';
 import { formatPoints } from '../../../shared/utils/formatters.js';
+import './StoreCatalog.css';
 
 const { Paragraph, Text, Title } = Typography;
 
@@ -75,7 +76,7 @@ export function StoreCatalog() {
   };
 
   return (
-    <Space orientation="vertical" size={16} style={{ width: '100%' }}>
+    <Space className="store-catalog" orientation="vertical" size={16} style={{ width: '100%' }}>
       {error ? (
         <Alert
           showIcon
@@ -89,7 +90,10 @@ export function StoreCatalog() {
         />
       ) : null}
 
-      <Card>
+      <Card className="store-catalog__balance-card">
+        <div className="store-catalog__balance-icon">
+          <WalletOutlined />
+        </div>
         <Space orientation="vertical" size={2}>
           <Text type="secondary">Saldo disponible</Text>
           <Title level={3} style={{ margin: 0 }}>
@@ -108,7 +112,14 @@ export function StoreCatalog() {
                 <Card
                   hoverable
                   title={reward.name}
-                  extra={<Tag color={reward.stock > 5 ? 'green' : 'orange'}>Stock: {reward.stock}</Tag>}
+                  extra={
+                    <Tag
+                      color={reward.stock > 5 ? 'green' : 'orange'}
+                      style={{ marginTop: '28px' }}
+                    >
+                      Stock: {reward.stock}
+                    </Tag>
+                  }
                 >
                   <Space orientation="vertical" size={10} style={{ width: '100%' }}>
                     <Paragraph type="secondary" style={{ marginBottom: 0 }}>

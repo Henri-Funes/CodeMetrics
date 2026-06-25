@@ -1,23 +1,23 @@
 .app-shell {
   min-height: 100vh;
-  background-color: #0f1115;
+  background-color: var(--cm-bg);
   background-image:
-    radial-gradient(circle at 20% 10%, rgba(0, 229, 255, 0.12), transparent 35%),
-    radial-gradient(circle at 80% 0%, rgba(120, 86, 255, 0.14), transparent 40%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
-    linear-gradient(225deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
-    linear-gradient(315deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
-    linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%);
-  background-size: 100% 100%, 100% 100%, 56px 56px, 56px 56px, 56px 56px, 56px 56px;
+    radial-gradient(circle at 16% 8%, rgba(36, 201, 218, 0.12), transparent 34%),
+    radial-gradient(circle at 82% 2%, rgba(83, 214, 226, 0.08), transparent 36%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%),
+    linear-gradient(225deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%),
+    linear-gradient(315deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%);
+  background-size: 100% 100%, 100% 100%, 52px 52px, 52px 52px, 52px 52px, 52px 52px;
   background-position: 0 0, 0 0, 0 0, 28px 0, 28px -28px, 0 28px;
 }
 
 .app-header {
   align-items: center;
   backdrop-filter: blur(10px);
-  background: rgba(18, 20, 24, 0.88);
-  border-bottom: 1px solid rgba(0, 229, 255, 0.28);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+  background: rgba(20, 23, 29, 0.88);
+  border-bottom: 1px solid var(--cm-border);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
   display: flex;
   height: 74px;
   justify-content: space-between;
@@ -44,10 +44,10 @@
 
 .app-brand__icon {
   align-items: center;
-  background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(120, 86, 255, 0.24));
-  border: 1px solid rgba(0, 229, 255, 0.4);
+  background: linear-gradient(135deg, rgba(36, 201, 218, 0.16), rgba(114, 236, 245, 0.18));
+  border: 1px solid var(--cm-border-strong);
   border-radius: 10px;
-  color: #7ef3ff;
+  color: var(--cm-accent-strong);
   display: inline-flex;
   font-size: 18px;
   height: 34px;
@@ -56,13 +56,13 @@
 }
 
 .app-brand__title.ant-typography {
-  color: #f4f9ff;
+  color: var(--cm-text);
   line-height: 1.1;
   margin: 0;
 }
 
 .app-brand__subtitle {
-  color: #9fb3c8;
+  color: var(--cm-text-subtle);
   display: block;
   font-size: 11px;
   letter-spacing: 0.06em;
@@ -77,13 +77,13 @@
 
 .app-menu.ant-menu .ant-menu-item {
   border-radius: 8px;
-  color: #d4dbe5;
+  color: var(--cm-text-muted);
 }
 
 .app-menu.ant-menu .ant-menu-item-selected {
-  background: linear-gradient(135deg, rgba(0, 229, 255, 0.26), rgba(120, 86, 255, 0.28));
-  border: 1px solid rgba(0, 229, 255, 0.38);
-  color: #ffffff;
+  background: linear-gradient(135deg, rgba(36, 201, 218, 0.18), rgba(114, 236, 245, 0.12));
+  border: 1px solid var(--cm-border-strong);
+  color: var(--cm-text);
 }
 
 .app-header__right {
@@ -95,8 +95,8 @@
 }
 
 .app-sider {
-  background: rgba(14, 16, 20, 0.95);
-  border-right: 1px solid rgba(0, 229, 255, 0.2);
+  background: rgba(16, 19, 24, 0.94);
+  border-right: 1px solid var(--cm-border);
 }
 
 .app-sider-menu.ant-menu {
@@ -111,8 +111,8 @@
 }
 
 .app-sider-menu.ant-menu .ant-menu-item-selected {
-  background: linear-gradient(135deg, rgba(0, 229, 255, 0.26), rgba(120, 86, 255, 0.28));
-  border: 1px solid rgba(0, 229, 255, 0.38);
+  background: linear-gradient(135deg, rgba(36, 201, 218, 0.18), rgba(114, 236, 245, 0.12));
+  border: 1px solid var(--cm-border-strong);
 }
 
 .app-content {
@@ -129,7 +129,7 @@
 
 .app-footer {
   background: transparent;
-  color: #9aa5b1;
+  color: var(--cm-text-subtle);
   text-align: center;
 }
 

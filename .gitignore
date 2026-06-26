@@ -46,6 +46,7 @@ docker-data/
 *.md
 !README.md
 !requeriments.md
+!expo.md
 !desarrollo-documentacion/
 !desarrollo-documentacion/**
 !desarrollo-documentacion-UI/
